@@ -6,13 +6,14 @@
 
 **2. The Verification Event:**
  The AI suggested that I move the filtering logic from the Browse component to the FilterSidebar component using a local useEffect. 
- // AI suggestion
-    const FilterSidebar = ({ businesses, onFilterChange }) => {
-    const [localFilters, setLocalFilters] = useState({});
-    useEffect(() => {
-        const filtered = businesses.filter(/* ... */);
-        onFilterChange(filtered);          // ← passing filtered data, not filter state
-    }, [localFilters, businesses]);
+
+    // AI suggestion
+        const FilterSidebar = ({ businesses, onFilterChange }) => 
+        const [localFilters, setLocalFilters] = useState({});
+        useEffect(() => {
+            const filtered = businesses.filter(/* ... */);
+            onFilterChange(filtered);          // ← passing filtered data, not filter state
+        }, [localFilters, businesses]);
 
  I rejected this because it seemed like it would make the FilterSidebar component more complex and harder to maintain since it is a UI component. Due to this, it shouldn't be in charge of storing any business logic or data. Passing business data to the FilterSidebar component makes it harder to test.
 
@@ -26,9 +27,11 @@
 
 
 
-3. Trust Boundary Established: This refactor makes the system more stable by keeping the UI components simple and testable. It also makes the system more efficient by using useMemo to memoize the filtered businesses. 
+**3. Trust Boundary Established:**
+This refactor makes the system more stable by keeping the UI components simple and testable. It also makes the system more efficient by using useMemo to memoize the filtered businesses. 
 
-4. Evidence of Execution: 
-![Evidence of execution screenshot 1](./Screenshot%202026-02-18%20at%2011.05.13%20PM.png)
+**4. Evidence of Execution: Screenshots of Test:**
 
-![Evidence of execution screenshot 2](./Screenshot%202026-02-18%20at%2011.07.30%20PM.png)
+![Evidence 1](HUAffiliated_SS.png)
+
+![Evidence 2](HU&Coffee_SS.png)
