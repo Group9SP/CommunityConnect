@@ -29,6 +29,6 @@
 3. Trust Boundary Established: This refactor makes the system more stable by keeping the UI components simple and testable. It also makes the system more efficient by using useMemo to memoize the filtered businesses. 
 
 4. Evidence of Execution: 
-![Alt text for screen readers]/Users/destiny/equity-spot-38895/Screenshot 2026-02-18 at 11.05.13 PM.png
+![Evidence of execution screenshot 1](./Screenshot%202026-02-18%20at%2011.05.13%20PM.png)
 
-![Alt text for screen readers]Screenshot 2026-02-18 at 11.07.30 PM.png
+![Evidence of execution screenshot 2](./Screenshot%202026-02-18%20at%2011.07.30%20PM.png)
