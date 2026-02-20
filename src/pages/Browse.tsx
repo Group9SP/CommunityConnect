@@ -101,13 +101,13 @@ const Browse = () => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => setDebouncedQuery(value), 300);
   }, []);
-/*
-const filteredBusinesses = useMemo(
-    () => applyFilters(ALL_BUSINESSES, filters, debouncedQuery),
-    [filters, debouncedQuery]
-  );
-  */
- 
+  /*
+  const filteredBusinesses = useMemo(
+      () => applyFilters(ALL_BUSINESSES, filters, debouncedQuery),
+      [filters, debouncedQuery]
+    );
+    */
+
   // Reset page when filters change
   const handleFilterChange = useCallback((next: BusinessFilters) => {
     setFilters(next);

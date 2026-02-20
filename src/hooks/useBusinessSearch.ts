@@ -68,18 +68,18 @@ async function fetchBusinesses({
         // Build Supabase query
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let dbQuery = (supabase as any)
-            .from("businesses")
+            .from("business_profiles")
             .select("*", { count: "exact" });
 
         // F3.2.1 — search across name, category, location, description
         if (query.trim()) {
             dbQuery = dbQuery.or(
-                `name.ilike.%${query}%,category.ilike.%${query}%,location.ilike.%${query}%,description.ilike.%${query}%`
+                `business_name.ilike.%${query}%,category.ilike.%${query}%,address.ilike.%${query}%,description.ilike.%${query}%`
             );
         }
 
         // F3.2.2 — filter chips
-        if (filters.verified) dbQuery = dbQuery.eq("is_verified", true);
+        if (filters.verified) dbQuery = dbQuery.eq("verification_status", "verified");
         if (filters.howardAffiliated)
             dbQuery = dbQuery.eq("is_howard_affiliated", true);
         if (filters.minorityOwned)
@@ -123,15 +123,15 @@ async function fetchBusinesses({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (row: any): Business => ({
                 id: String(row.id),
-                name: row.name ?? "",
+                name: row.business_name ?? "",
                 category: row.category ?? "",
                 image: row.image_url ?? coffeeImage,
                 rating: row.rating ?? 0,
                 reviewCount: row.review_count ?? 0,
                 priceLevel: row.price_level ?? 1,
                 languages: row.languages ?? [],
-                location: row.location ?? "",
-                isVerified: row.is_verified ?? false,
+                location: row.address ?? "",
+                isVerified: row.verification_status === "verified",
                 isHowardAffiliated: row.is_howard_affiliated ?? false,
                 isMinorityOwned: row.is_minority_owned ?? false,
                 description: row.description ?? "",
