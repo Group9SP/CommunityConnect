@@ -1,4 +1,6 @@
 import { useParams, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient"; // your initialized client
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +8,42 @@ import { Separator } from "@/components/ui/separator";
 import { ReviewCard } from "@/components/ReviewCard";
 import AuthButton from "@/components/AuthButton";
 import { Star, MapPin, Phone, Globe, Clock, DollarSign, Languages } from "lucide-react";
-import coffeeImage from "@/assets/business-coffee.jpg";
+
+const BusinessDetail = () => {
+  const { id } = useParams();
+  const [business, setBusiness] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!id) return;
+    setLoading(true);
+    supabase
+      .from("business_profiles")
+      .select("*")
+      .eq("id", id)
+      .single()
+      .then(({ data, error }) => {
+        if (error) {
+          setError(error.message);
+          setBusiness(null);
+        } else {
+          setBusiness(data);
+          setError(null);
+        }
+        setLoading(false);
+      });
+  }, [id]);
+
+  if (loading) return <div>Loading...</div>;
+  if (error || !business) return <div>Error: {error || "Business not found"}</div>;
+
+  // ...render the business details using the fetched `business` object...
+};
+
+export default BusinessDetail;
+
+/* --- IGNORE ---
 
 const BusinessDetail = () => {
   const { id } = useParams();
@@ -57,7 +94,6 @@ const BusinessDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="bg-card border-b sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -74,7 +110,7 @@ const BusinessDetail = () => {
         </div>
       </header>
 
-      {/* Hero Image Gallery */}
+      
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-3 gap-2 h-[400px]">
           <div className="col-span-2 rounded-lg overflow-hidden">
@@ -103,10 +139,10 @@ const BusinessDetail = () => {
         </div>
       </div>
 
-      {/* Main Content */}
+      
       <div className="container mx-auto px-4 pb-12">
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Info */}
+         
           <div className="lg:col-span-2 space-y-6">
             <div>
               <div className="flex gap-2 mb-3">
@@ -187,7 +223,7 @@ const BusinessDetail = () => {
             </div>
           </div>
 
-          {/* Sidebar Info */}
+          
           <div className="lg:col-span-1">
             <Card className="sticky top-24">
               <CardHeader>
@@ -262,7 +298,7 @@ const BusinessDetail = () => {
         </div>
       </div>
 
-      {/* Footer */}
+      
       <footer className="bg-secondary text-secondary-foreground py-8">
         <div className="container mx-auto px-4 text-center">
           <p>&copy; 2025 Community Business Connect. Empowering minority-owned businesses.</p>
