@@ -1,73 +1,190 @@
-# Welcome to your Lovable project
+# CommunityConnect
 
-## Project info
+**Discover and support verified minority-owned and Howard University-affiliated businesses.**
 
-**URL**: https://lovable.dev/projects/ca100ae6-3257-4e12-ab37-81565a3d8ee8
+CommunityConnect (also branded as "Minority X-Change") is a web platform that connects users with verified minority-owned businesses and Howard University-affiliated entrepreneurs. The platform provides business discovery, authentication, verification workflows, and review capabilities.
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+- 🔍 **Business Discovery**: Browse and search minority-owned businesses by category, location, price level, and more
+- ✅ **Verification System**: Verified business profiles with pending/verified/rejected status workflow
+- 👤 **User Authentication**: Secure registration and login via Supabase Auth
+- 📝 **Business Profiles**: Business owners can create and manage detailed profiles
+- ⭐ **Reviews**: Users can leave reviews and ratings for businesses
+- � **Advanced Filtering**: Filter by category, price level, languages, minority-owned status, and Howard affiliation
 
-**Use Lovable**
+## Technology Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/ca100ae6-3257-4e12-ab37-81565a3d8ee8) and start prompting.
+- **Frontend**: React 18.3.1 + TypeScript
+- **Build Tool**: Vite 5.4.19
+- **Routing**: React Router DOM 6.30.1
+- **UI Components**: shadcn/ui (Radix UI primitives)
+- **Styling**: Tailwind CSS 3.4.17
+- **State Management**: TanStack React Query 5.83.0
+- **Backend**: Supabase (PostgreSQL + Auth + Storage)
+- **Form Handling**: React Hook Form + Zod validation
+- **Icons**: Lucide React
 
-Changes made via Lovable will be committed automatically to this repo.
+## Prerequisites
 
-**Use your preferred IDE**
+- Node.js 18+ (recommended: use [nvm](https://github.com/nvm-sh/nvm) for version management)
+- npm or yarn
+- A Supabase account and project
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Installation
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### 1. Clone the Repository
 
-Follow these steps:
+```bash
+git clone <YOUR_REPO_URL>
+cd CommunityConnect
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### 2. Install Dependencies
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+```bash
+npm install
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+### 3. Set Up Environment Variables
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+Create a `.env` file in the project root:
+
+```env
+VITE_SUPABASE_URL=https://your-project-id.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=your-anon-public-key
+VITE_SUPABASE_PROJECT_ID=your-project-id
+```
+
+**How to get Supabase credentials:**
+1. Go to [Supabase Dashboard](https://app.supabase.com)
+2. Create a new project or select an existing one
+3. Go to Project Settings > API
+4. Copy the Project URL → `VITE_SUPABASE_URL`
+5. Copy the `anon` `public` key → `VITE_SUPABASE_PUBLISHABLE_KEY`
+6. Copy the Project ID → `VITE_SUPABASE_PROJECT_ID`
+
+### 4. Set Up Database
+
+The project includes Supabase migrations in the `supabase/` directory. Run these migrations in your Supabase project:
+
+1. Go to Supabase Dashboard > SQL Editor
+2. Run the migration files in order (check `supabase/migrations/`)
+
+Or use the Supabase CLI:
+```bash
+supabase db push
+```
+
+### 5. Start Development Server
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The application will be available at `http://localhost:8080`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Available Scripts
 
-**Use GitHub Codespaces**
+- `npm run dev` - Start development server with hot reload
+- `npm run build` - Build for production
+- `npm run build:dev` - Build in development mode
+- `npm run preview` - Preview production build locally
+- `npm run lint` - Run ESLint
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Project Structure
 
-## What technologies are used for this project?
+```
+src/
+├── components/          # Reusable UI components
+│   ├── ui/              # shadcn/ui components
+│   ├── AuthButton.tsx
+│   ├── BusinessCard.tsx
+│   ├── FilterSidebar.tsx
+│   └── ReviewCard.tsx
+├── pages/               # Route pages
+│   ├── Index.tsx        # Homepage
+│   ├── Browse.tsx       # Business listings
+│   ├── BusinessDetail.tsx # Business detail page
+│   ├── Auth.tsx         # Authentication
+│   └── NotFound.tsx
+├── hooks/               # Custom React hooks
+├── integrations/
+│   └── supabase/        # Supabase client & types
+├── lib/                 # Utility functions
+├── types/               # TypeScript type definitions
+├── App.tsx              # Main app component
+├── main.tsx             # Entry point
+└── index.css            # Global styles
+```
 
-This project is built with:
+## Development
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Code Style
 
-## How can I deploy this project?
+- TypeScript strict mode enabled
+- ESLint configured with React hooks rules
+- Components use functional components with hooks
+- Styling via Tailwind CSS utility classes
 
-Simply open [Lovable](https://lovable.dev/projects/ca100ae6-3257-4e12-ab37-81565a3d8ee8) and click on Share -> Publish.
+### Key Files
 
-## Can I connect a custom domain to my Lovable project?
+- `src/App.tsx` - Main application component with routing
+- `src/integrations/supabase/client.ts` - Supabase client configuration
+- `vite.config.ts` - Vite build configuration
+- `tailwind.config.ts` - Tailwind CSS configuration
 
-Yes, you can!
+## Deployment
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Build for Production
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+```bash
+npm run build
+```
+
+The production build will be in the `dist/` directory.
+
+### Deploy Options
+
+- **Vercel**: Connect your Git repository, set environment variables, deploy
+- **Netlify**: Connect repository, set build command `npm run build`, set publish directory `dist`
+- **Supabase Hosting**: Use Supabase's built-in hosting
+- **Any static host**: Upload `dist/` folder contents
+
+### Environment Variables for Production
+
+Ensure your production environment has the same `.env` variables:
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `VITE_SUPABASE_PROJECT_ID`
+
+## Database Schema
+
+The application uses the following Supabase tables:
+
+- **profiles**: User profile information
+- **user_roles**: Role-based access control (business_owner, customer)
+- **business_profiles**: Business information and verification status
+- **reviews**: User reviews for businesses
+
+Row Level Security (RLS) policies are enabled for data protection.
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amezing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+[Add your license here]
+
+## Support
+
+For issues and questions, please open an issue in the repository.
+
+---
+
+**Built with** ❤️ using React, Vite, and Supabase
