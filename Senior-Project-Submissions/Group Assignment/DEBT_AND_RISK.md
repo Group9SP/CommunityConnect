@@ -83,7 +83,7 @@
 
 ---
 
-### Item 6: Non-Functional Filter System
+### Item 6: Non-Functional Filter System -- Resolved by Destiny (Lab 2 Submission)
 **Category:** Architectural Debt  
 **Description:** The `FilterSidebar` component in `Browse.tsx` renders filter UI (checkboxes for verification status, categories, price range, ratings) but the `onFilterChange` callback is never actually used to filter the businesses list. The `filters` state in Browse.tsx is initialized as an empty object and never updated, and the hardcoded businesses array is always displayed regardless of filter selections. The search input in the header also has no functionality. This creates a poor user experience where filters appear to work but don't actually affect the displayed results.
 **Remediation Plan:**
@@ -99,7 +99,7 @@
 
 ---
 
-### Item 7: Empty Supabase TypeScript Types
+### Item 7: Empty Supabase TypeScript Types -- Resolved by Karis (Lab 2 Submission)
 **Category:** Architectural Debt  
 **Description:** The `src/integrations/supabase/types.ts` file has a Database type definition where all tables, views, functions, and enums are typed as `never`, meaning TypeScript provides no type safety for database operations. Despite having a complete database schema with tables (profiles, user_roles, business_profiles) and enums (app_role), the TypeScript types don't reflect this structure. This means all Supabase queries are untyped, losing the benefits of TypeScript's type checking and autocomplete for database operations. Developers must manually remember table names and column types, leading to runtime errors that could be caught at compile time.
 **Remediation Plan:**
