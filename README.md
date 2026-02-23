@@ -4,6 +4,19 @@
 
 CommunityConnect (also branded as "Minority X-Change") is a web platform that connects users with verified minority-owned businesses and Howard University-affiliated entrepreneurs. The platform provides business discovery, authentication, verification workflows, and review capabilities.
 
+## Business Domain Explanation
+The platform operates around three primary actors:
+
+- **Visitors** – Can browse public business listings
+- **Authenticated Users** – Can create and manage business profiles
+- **Administrators** – Can approve or reject business verification requests
+
+Core domain concepts:
+- Business discovery
+- Role-based access control
+- Business verification lifecycle
+- Secure authentication
+
 ## Features
 
 - 🔍 **Business Discovery**: Browse and search minority-owned businesses by category, location, price level, and more
@@ -13,7 +26,7 @@ CommunityConnect (also branded as "Minority X-Change") is a web platform that co
 - ⭐ **Reviews**: Users can leave reviews and ratings for businesses
 - � **Advanced Filtering**: Filter by category, price level, languages, minority-owned status, and Howard affiliation
 
-## Technology Stack
+## Technology Stack and Architecture Overview
 
 - **Frontend**: React 18.3.1 + TypeScript
 - **Build Tool**: Vite 5.4.19
