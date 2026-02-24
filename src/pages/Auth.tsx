@@ -1,3 +1,13 @@
+/**
+ * Multi-step signup flow:
+ * 1. Create Supabase Auth user
+ * 2. Insert record into profiles table
+ * 3. Assign default role in user_roles
+ *
+ * Trust Boundary:
+ * Auth state must match profiles + roles table.
+ */
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
