@@ -182,6 +182,14 @@ The application uses the following Supabase tables:
 
 Row Level Security (RLS) policies are enabled for data protection.
 
+## Data Relationships
+
+profiles.id → references auth.users.id
+
+user_roles.user_id → references profiles.id
+
+business_profiles.owner_id → references profiles.id
+
 ## Contributing
 
 1. Fork the repository
