@@ -27,13 +27,13 @@ const Index = () => {
 
       {/* Hero Section */}
       <section className="relative h-[600px] flex items-center justify-center overflow-hidden">
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${heroImage})` }}
         >
           <div className="absolute inset-0 bg-gradient-to-r from-primary/95 to-secondary/95" />
         </div>
-        
+
         <div className="relative z-10 container mx-auto px-4 text-center text-white">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 animate-fade-in">
             Discover & Support<br />Minority-Owned Businesses
@@ -41,7 +41,7 @@ const Index = () => {
           <p className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto">
             Connect with verified minority-owned and Howard University-affiliated businesses in one trusted platform
           </p>
-          
+
           <div className="max-w-2xl mx-auto mb-8">
             <div className="flex gap-2">
               <Input
@@ -69,10 +69,10 @@ const Index = () => {
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-6">Our Mission</h2>
             <p className="text-lg leading-relaxed mb-8">
-              In light of recent rollbacks to diversity, equity, and inclusion (DEI) initiatives, 
-              we're building a platform that shines a spotlight on minority-owned businesses and 
-              connects them directly with conscious consumers. We empower communities through 
-              authentic discovery, trusted reviews, and special support for Howard University-affiliated 
+              In light of recent rollbacks to diversity, equity, and inclusion (DEI) initiatives,
+              we're building a platform that shines a spotlight on minority-owned businesses and
+              connects them directly with conscious consumers. We empower communities through
+              authentic discovery, trusted reviews, and special support for Howard University-affiliated
               entrepreneurs.
             </p>
           </div>
@@ -93,7 +93,7 @@ const Index = () => {
                 All businesses undergo strict verification to ensure authentic minority ownership and Howard affiliation
               </p>
             </div>
-            
+
             <div className="text-center space-y-4">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-secondary text-secondary-foreground">
                 <Heart className="h-8 w-8" />
@@ -103,7 +103,7 @@ const Index = () => {
                 Read authentic customer experiences and build trust through transparent, moderated feedback
               </p>
             </div>
-            
+
             <div className="text-center space-y-4">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent text-accent-foreground">
                 <TrendingUp className="h-8 w-8" />
@@ -132,9 +132,11 @@ const Index = () => {
                 Explore Businesses
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="h-12 px-8 bg-white/10 hover:bg-white/20 text-white border-white">
-              List Your Business
-            </Button>
+            <Link to="/list-business">
+              <Button size="lg" variant="outline" className="h-12 px-8 bg-white/10 hover:bg-white/20 text-white border-white">
+                List Your Business
+              </Button>
+            </Link>
           </div>
         </div>
       </section>

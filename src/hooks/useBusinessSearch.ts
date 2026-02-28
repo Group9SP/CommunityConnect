@@ -140,7 +140,8 @@ async function fetchBusinesses({
         );
 
         return { businesses, totalCount: count ?? 0 };
-    } catch {
+    } catch (err) {
+        console.error("Supabase fetch error:", err);
         // ── Graceful fallback: Supabase table not provisioned yet ──
         const filtered = applyFilters(STATIC_BUSINESSES_WITH_IMAGES, filters, query);
         const sorted = applySort(filtered, filters.sortBy);
