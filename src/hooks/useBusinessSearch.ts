@@ -114,7 +114,40 @@ async function fetchBusinesses({
         // F3.2.8 — pagination
         dbQuery = dbQuery.range(from, to);
 
-        const { data, error, count } = await dbQuery;
+        let { data, error, count } = await dbQuery;
+
+        console.log("Supabase raw data:", data, "error:", error);
+
+        // If the DB hasn't been migrated yet (missing rating/review_count/image_url) -> code 42703
+        if (error?.code === "42703") {
+            console.warn("Missing columns in Supabase. Retrying query without rating/review sorting...");
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            let retryQuery = (supabase as any)
+                .from("business_profiles")
+                .select("*", { count: "exact" });
+
+            if (query.trim()) {
+                retryQuery = retryQuery.or(
+                    `business_name.ilike.%${query}%,category.ilike.%${query}%,address.ilike.%${query}%,description.ilike.%${query}%`
+                );
+            }
+            if (filters.verified) retryQuery = retryQuery.eq("verification_status", "verified");
+            if (filters.howardAffiliated) retryQuery = retryQuery.eq("is_howard_affiliated", true);
+            if (filters.minorityOwned) retryQuery = retryQuery.eq("is_minority_owned", true);
+            if (filters.categories.length > 0) retryQuery = retryQuery.in("category", filters.categories);
+            if (filters.maxPriceLevel < 4) retryQuery = retryQuery.lte("price_level", filters.maxPriceLevel);
+
+            // omit sorting by rating/review_count, fallback to created_at
+            retryQuery = retryQuery.order("created_at", { ascending: false });
+            retryQuery = retryQuery.range(from, to);
+
+            const retry = await retryQuery;
+            data = retry.data;
+            error = retry.error;
+            count = retry.count;
+            console.log("Retry query result:", data, "error:", error);
+        }
 
         if (error) throw error;
 
