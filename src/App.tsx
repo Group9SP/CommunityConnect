@@ -8,6 +8,8 @@ import Browse from "./pages/Browse";
 import BusinessDetail from "./pages/BusinessDetail";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import AddBusiness from "./pages/AddBusiness";
+import { RequireBusinessOwner } from "./components/RequireBusinessOwner";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +23,14 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/browse" element={<Browse />} />
           <Route path="/business/:id" element={<BusinessDetail />} />
+          <Route
+            path="/business/add"
+            element={
+              <RequireBusinessOwner>
+                <AddBusiness />
+              </RequireBusinessOwner>
+            }
+          />
           <Route path="/auth" element={<Auth />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
