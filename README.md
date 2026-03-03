@@ -1,73 +1,142 @@
-# Welcome to your Lovable project
+# Minority X-Change
 
-## Project info
+A platform for discovering and supporting verified minority-owned and Howard University-affiliated businesses. Connect with authentic entrepreneurs making a difference in our community.
 
-**URL**: https://lovable.dev/projects/ca100ae6-3257-4e12-ab37-81565a3d8ee8
+## Project Overview
 
-## How can I edit this code?
+**Minority X-Change** (also branded as "Community Connect") empowers communities through authentic discovery, trusted reviews, and special support for minority-owned businesses. In light of recent rollbacks to diversity, equity, and inclusion (DEI) initiatives, this platform shines a spotlight on minority-owned businesses and connects them directly with conscious consumers.
 
-There are several ways of editing your application.
+## Features
 
-**Use Lovable**
+- 🔍 **Business Discovery**: Browse and search verified minority-owned businesses
+- 📋 **Detailed Profiles**: View comprehensive business information with reviews and ratings
+- ✅ **Verification System**: Trusted verification status for businesses
+- ⭐ **Reviews & Ratings**: User-generated reviews and ratings
+- 🎯 **Filtering**: Filter businesses by category, location, and more
+- 🔐 **User Authentication**: Secure signup and login system
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/ca100ae6-3257-4e12-ab37-81565a3d8ee8) and start prompting.
+## Technology Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Frontend**: React 18.3.1 with TypeScript
+- **Build Tool**: Vite 5.4.19
+- **Routing**: React Router DOM 6.30.1
+- **UI Components**: shadcn-ui (Radix UI primitives)
+- **Styling**: Tailwind CSS 3.4.17
+- **State Management**: TanStack Query (React Query) 5.83.0
+- **Backend/Database**: Supabase (PostgreSQL)
+- **Form Handling**: React Hook Form + Zod
+- **Icons**: Lucide React
+- **Charts**: Recharts
 
-**Use your preferred IDE**
+## Prerequisites
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- Node.js (v18 or higher recommended)
+- npm (comes with Node.js)
+- Git
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Getting Started
 
-Follow these steps:
+### Installation
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+1. Clone the repository:
+```bash
 git clone <YOUR_GIT_URL>
+cd equity-spot-38895
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+2. Install dependencies:
+```bash
+npm install
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+3. Set up environment variables:
+Create a `.env` file in the root directory (or verify the existing one) with:
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+4. Start the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The application will be available at `http://localhost:8080`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Available Scripts
 
-**Use GitHub Codespaces**
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Project Structure
 
-## What technologies are used for this project?
+```
+src/
+├── components/          # React components
+│   ├── ui/             # shadcn-ui components
+│   ├── AuthButton.tsx
+│   ├── BusinessCard.tsx
+│   ├── FilterSidebar.tsx
+│   └── ReviewCard.tsx
+├── pages/              # Route pages
+│   ├── Index.tsx      # Landing page
+│   ├── Browse.tsx     # Business listing page
+│   ├── BusinessDetail.tsx
+│   ├── Auth.tsx       # Authentication page
+│   └── NotFound.tsx
+├── integrations/
+│   └── supabase/      # Supabase client & types
+├── hooks/             # Custom React hooks
+├── lib/               # Utility functions
+├── assets/            # Static assets
+├── App.tsx            # Main app component
+├── main.tsx           # Entry point
+└── index.css          # Global styles
+```
 
-This project is built with:
+## Database Setup
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+The project uses Supabase for the backend. Database migrations are located in `supabase/migrations/`.
 
-## How can I deploy this project?
+Ensure you have:
+1. Access to the Supabase project
+2. Correct environment variables set in `.env`
+3. Database migrations applied (usually handled automatically by Supabase)
 
-Simply open [Lovable](https://lovable.dev/projects/ca100ae6-3257-4e12-ab37-81565a3d8ee8) and click on Share -> Publish.
+## Deployment
 
-## Can I connect a custom domain to my Lovable project?
+This application can be deployed to various platforms:
 
-Yes, you can!
+- **Vercel**: Excellent for Vite + React apps
+- **Netlify**: Good support for static sites
+- **Cloudflare Pages**: Fast CDN and edge computing
+- **AWS Amplify**: Full-stack deployment
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+Build the application:
+```bash
+npm run build
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+The `dist/` directory contains the optimized static assets ready for deployment.
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+[Add your license here]
+
+## Support
+
+For issues or questions, please open an issue in the repository.
+
+---
+
+Built with ❤️ for supporting minority-owned businesses
