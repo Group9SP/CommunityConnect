@@ -106,6 +106,7 @@ function applyFilters(
   const normalizedQuery = query.trim().toLowerCase();
 
   return businesses.filter((b) => {
+    // Only hide unverified listings when the user enables the "Verified Minority-Owned" filter.
     if (filters.verified && !b.isVerified) return false;
     if (filters.howardAffiliated && !b.isHowardAffiliated) return false;
     if (filters.categories.length > 0 && !filters.categories.includes(b.category))
@@ -241,11 +242,12 @@ const Browse = () => {
           <main className="lg:col-span-3">
             <div className="mb-6 flex items-center justify-between">
               <p className="text-muted-foreground">
+                {/* Copy reflects whether we're currently filtering to verified-only or showing all matches. */}
                 Showing{" "}
                 <span className="font-semibold text-foreground">
                   {filteredBusinesses.length}
                 </span>{" "}
-                of {ALL_BUSINESSES.length} businesses
+                {filters.verified ? "verified businesses" : "businesses"}
               </p>
               {hasActiveFilters && (
                 <Button

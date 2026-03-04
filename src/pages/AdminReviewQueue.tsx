@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Check, X, ClipboardList } from "lucide-react";
+import { getVerificationStatusLabel, type VerificationStatus } from "@/lib/verificationStatus";
 
 // Format submission timestamps into a compact, human-readable date.
 function formatDate(iso: string) {
@@ -71,6 +72,12 @@ function QueueRow({
       </TableCell>
       <TableCell className="text-muted-foreground text-sm">
         {formatDate(business.created_at)}
+      </TableCell>
+      <TableCell>
+        {/* Surface the current verification state so admins know what stage this listing is in. */}
+        <Badge variant="secondary">
+          {getVerificationStatusLabel(business.verification_status as VerificationStatus)}
+        </Badge>
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
@@ -216,6 +223,7 @@ export default function AdminReviewQueue() {
                     <TableHead>Business</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Submitted</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead className="w-[240px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>

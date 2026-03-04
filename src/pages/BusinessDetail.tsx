@@ -110,6 +110,7 @@ const BusinessDetail = () => {
           <div className="lg:col-span-2 space-y-6">
             <div>
               <div className="flex gap-2 mb-3">
+                {/* Surface verification and affiliation badges near the title for quick trust signals. */}
                 {business.isVerified && (
                   <Badge className="bg-[hsl(var(--verified-badge))] text-white">
                     ✓ Verified Minority-Owned

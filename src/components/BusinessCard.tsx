@@ -42,6 +42,7 @@ export const BusinessCard = ({
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
           <div className="absolute top-3 right-3 flex flex-col gap-2">
+            {/* Highlight verified listings so users can quickly spot trusted businesses. */}
             {isVerified && (
               <Badge className="bg-[hsl(var(--verified-badge))] text-white">
                 ✓ Verified
