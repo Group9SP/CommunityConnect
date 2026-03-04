@@ -21,8 +21,21 @@ export type BusinessProfileReview = {
   logo_url: string | null;
 };
 
+// Shape of a single audit entry from business_profile_history.
+export type BusinessProfileHistoryEntry = {
+  id: string;
+  business_profile_id: string;
+  changed_by: string | null;
+  changed_at: string;
+  action: "insert" | "update" | "delete" | string;
+  previous_row: Record<string, unknown> | null;
+  new_row: Record<string, unknown> | null;
+};
+
 // Shared React Query cache key for the list of pending businesses.
 const QUERY_KEY_PENDING = ["admin", "pending-businesses"];
+// Shared React Query cache key namespace for per-business history.
+const QUERY_KEY_HISTORY = ["admin", "business-history"];
 
 export function usePendingBusinesses() {
   return useQuery({
@@ -36,6 +49,24 @@ export function usePendingBusinesses() {
 
       if (error) throw error;
       return (data ?? []) as BusinessProfileReview[];
+    },
+  });
+}
+
+// Fetch the edit history for a specific business profile so admins can audit changes over time.
+export function useBusinessProfileHistory(businessId: string | null) {
+  return useQuery({
+    enabled: !!businessId,
+    queryKey: [...QUERY_KEY_HISTORY, businessId],
+    queryFn: async (): Promise<BusinessProfileHistoryEntry[]> => {
+      const { data, error } = await supabase
+        .from("business_profile_history")
+        .select("*")
+        .eq("business_profile_id", businessId)
+        .order("changed_at", { ascending: false });
+
+      if (error) throw error;
+      return (data ?? []) as BusinessProfileHistoryEntry[];
     },
   });
 }
