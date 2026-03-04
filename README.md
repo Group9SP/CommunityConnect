@@ -105,6 +105,19 @@ Ensure you have:
 2. Correct environment variables set in `.env`
 3. Database migrations applied (usually handled automatically by Supabase)
 
+## Admin Review Queue
+
+- **Route**: `/admin/review` (also reachable from the avatar menu as **“Review queue”** for admins).
+- **Access control**: Only users with the `admin` role in `public.user_roles` can access this page; others are blocked.
+- **Behavior**: Shows businesses with `verification_status = 'pending'` so admins can approve (→ `verified`) or reject (→ `rejected`).
+- **Assigning admins**: Promote an existing user with:
+
+  ```sql
+  INSERT INTO public.user_roles (user_id, role)
+  VALUES ('<auth-users-uuid>', 'admin')
+  ON CONFLICT DO NOTHING;
+  ```
+
 ## Deployment
 
 This application can be deployed to various platforms:

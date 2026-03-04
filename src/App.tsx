@@ -9,7 +9,11 @@ import BusinessDetail from "./pages/BusinessDetail";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import AddBusiness from "./pages/AddBusiness";
+// Admin-only page that surfaces the verification review queue.
+import AdminReviewQueue from "./pages/AdminReviewQueue";
 import { RequireBusinessOwner } from "./components/RequireBusinessOwner";
+// Route guard that restricts access to users with the admin role.
+import { RequireAdmin } from "./components/RequireAdmin";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +36,14 @@ const App = () => (
             }
           />
           <Route path="/auth" element={<Auth />} />
+          <Route
+            path="/admin/review"
+            element={
+              <RequireAdmin>
+                <AdminReviewQueue />
+              </RequireAdmin>
+            }
+          />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
