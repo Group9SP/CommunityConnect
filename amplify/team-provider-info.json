@@ -1,22 +1,22 @@
 {
-  "staging": {
+  "dev": {
     "awscloudformation": {
-      "AuthRoleName": "amplify-seniorprojecttest-staging-a2247-authRole",
-      "UnauthRoleArn": "arn:aws:iam::983883744468:role/amplify-seniorprojecttest-staging-a2247-unauthRole",
-      "AuthRoleArn": "arn:aws:iam::983883744468:role/amplify-seniorprojecttest-staging-a2247-authRole",
+      "AuthRoleName": "amplify-communityconnect-dev-7a86e-authRole",
+      "UnauthRoleArn": "arn:aws:iam::983883744468:role/amplify-communityconnect-dev-7a86e-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::983883744468:role/amplify-communityconnect-dev-7a86e-authRole",
       "Region": "us-east-2",
-      "DeploymentBucketName": "amplify-seniorprojecttest-staging-a2247-deployment",
-      "UnauthRoleName": "amplify-seniorprojecttest-staging-a2247-unauthRole",
-      "StackName": "amplify-seniorprojecttest-staging-a2247",
-      "StackId": "arn:aws:cloudformation:us-east-2:983883744468:stack/amplify-seniorprojecttest-staging-a2247/002b6c50-b340-11f0-ac43-027c0763ba09",
-      "AmplifyAppId": "d2pmgqp3pt854a"
+      "DeploymentBucketName": "amplify-communityconnect-dev-7a86e-deployment",
+      "UnauthRoleName": "amplify-communityconnect-dev-7a86e-unauthRole",
+      "StackName": "amplify-communityconnect-dev-7a86e",
+      "StackId": "arn:aws:cloudformation:us-east-2:983883744468:stack/amplify-communityconnect-dev-7a86e/6e364e40-18c6-11f1-bbbb-020119f1829f",
+      "AmplifyAppId": "d3a39t2r8iqwh4"
     },
     "categories": {
       "auth": {
-        "MinorityXChange": {}
+        "communityconnectfb602f9c": {}
       },
       "api": {
-        "SeniorProjectTest": {}
+        "communityconnect": {}
       }
     }
   }

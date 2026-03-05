@@ -2,7 +2,7 @@
   "providers": [
     "awscloudformation"
   ],
-  "projectName": "MinorityXChange",
+  "projectName": "CommunityConnect",
   "version": "3.1",
   "frontend": "javascript",
   "javascript": {

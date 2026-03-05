@@ -1,34 +1,30 @@
 {
   "api": {
-    "SeniorProjectTest": {
+    "communityconnect": {
       "dependsOn": [
         {
           "attributes": [
             "UserPoolId"
           ],
           "category": "auth",
-          "resourceName": "MinorityXChange"
+          "resourceName": "communityconnectfb602f9c"
         }
       ],
       "output": {
         "authConfig": {
           "additionalAuthenticationProviders": [
             {
-              "authenticationType": "AWS_IAM"
-            },
-            {
-              "apiKeyConfig": {
-                "apiKeyExpirationDays": 30,
-                "description": "api key description"
-              },
-              "authenticationType": "API_KEY"
+              "authenticationType": "AMAZON_COGNITO_USER_POOLS",
+              "userPoolConfig": {
+                "userPoolId": "authcommunityconnectfb602f9c"
+              }
             }
           ],
           "defaultAuthentication": {
-            "authenticationType": "AMAZON_COGNITO_USER_POOLS",
-            "userPoolConfig": {
-              "userPoolId": "authMinorityXChange"
-            }
+            "apiKeyConfig": {
+              "apiKeyExpirationDays": 7
+            },
+            "authenticationType": "API_KEY"
           }
         }
       },
@@ -37,7 +33,7 @@
     }
   },
   "auth": {
-    "MinorityXChange": {
+    "communityconnectfb602f9c": {
       "customAuth": false,
       "dependsOn": [],
       "frontendAuthConfig": {
@@ -46,12 +42,7 @@
           "SMS"
         ],
         "passwordProtectionSettings": {
-          "passwordPolicyCharacters": [
-            "REQUIRES_LOWERCASE",
-            "REQUIRES_NUMBERS",
-            "REQUIRES_SYMBOLS",
-            "REQUIRES_UPPERCASE"
-          ],
+          "passwordPolicyCharacters": [],
           "passwordPolicyMinLength": 8
         },
         "signupAttributes": [
@@ -59,7 +50,8 @@
         ],
         "socialProviders": [],
         "usernameAttributes": [
-          "EMAIL"
+          "EMAIL",
+          "PHONE_NUMBER"
         ],
         "verificationMechanisms": [
           "EMAIL"
