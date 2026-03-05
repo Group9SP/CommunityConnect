@@ -10,7 +10,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { signIn, signUp, getCurrentUser } from "aws-amplify/auth";
+import { signIn, signUp, getCurrentUser, confirmSignUp, resendSignUpCode } from "aws-amplify/auth";
 import { generateClient } from "aws-amplify/api";
 import { createProfile, createUserRole } from "@/graphql/mutations";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,8 @@ export default function Auth() {
   const [role, setRole] = useState<"customer" | "business_owner">("customer");
   const [showConfirm, setShowConfirm] = useState(false);
   const [pendingSignup, setPendingSignup] = useState<{ email: string; password: string; fullName: string; role: AppRole } | null>(null);
+  const [confirmationCode, setConfirmationCode] = useState("");
+  const [confirmLoading, setConfirmLoading] = useState(false);
   
   // Login form
   const [loginEmail, setLoginEmail] = useState("");
@@ -142,6 +144,46 @@ export default function Auth() {
     }
   };
 
+  const handleConfirm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pendingSignup) return;
+    setConfirmLoading(true);
+    try {
+      await confirmSignUp({ username: pendingSignup.email, confirmationCode });
+      toast({
+        title: "Account Verified!",
+        description: "Your account has been verified. You can now sign in.",
+      });
+      setShowConfirm(false);
+      setPendingSignup(null);
+      setConfirmationCode("");
+    } catch (error: any) {
+      toast({
+        title: "Verification Failed",
+        description: error.message || String(error),
+        variant: "destructive",
+      });
+    }
+    setConfirmLoading(false);
+  };
+
+  const handleResendCode = async () => {
+    if (!pendingSignup) return;
+    try {
+      await resendSignUpCode({ username: pendingSignup.email });
+      toast({
+        title: "Code Resent",
+        description: "A new verification code has been sent to your email.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Resend Failed",
+        description: error.message || String(error),
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <Card className="w-full max-w-md">
@@ -155,13 +197,32 @@ export default function Auth() {
         </CardHeader>
         <CardContent>
           {showConfirm ? (
-            <div className="text-center space-y-4">
-              <p className="text-lg font-semibold">Verify your email</p>
-              <p className="text-muted-foreground">A confirmation link has been sent to your email. Please verify your account before signing in.</p>
-              <Button className="w-full" onClick={() => { setShowConfirm(false); navigate('/auth'); }}>
+            <form className="space-y-4" onSubmit={handleConfirm}>
+              <div className="text-center space-y-2">
+                <p className="text-lg font-semibold">Verify your email</p>
+                <p className="text-muted-foreground">A confirmation code has been sent to your email. Enter it below to verify your account.</p>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="confirmation-code" className="block text-sm font-medium">Verification Code</label>
+                <input
+                  id="confirmation-code"
+                  type="text"
+                  value={confirmationCode}
+                  onChange={e => setConfirmationCode(e.target.value)}
+                  className="w-full border rounded px-3 py-2"
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={confirmLoading}>
+                {confirmLoading ? "Verifying..." : "Verify Account"}
+              </Button>
+              <Button type="button" variant="outline" className="w-full" onClick={handleResendCode}>
+                Resend Code
+              </Button>
+              <Button className="w-full" variant="ghost" onClick={() => { setShowConfirm(false); setConfirmationCode(""); }}>
                 Back to Login
               </Button>
-            </div>
+            </form>
           ) : (
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
