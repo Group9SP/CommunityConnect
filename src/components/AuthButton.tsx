@@ -1,8 +1,5 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
 import { LogOut, User as UserIcon, ClipboardList } from "lucide-react";
 import {
@@ -13,61 +10,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { supabase } from "@/integrations/supabase/client";
+import { useSession } from "@/features/auth/hooks/useSession";
+import { useHasRole } from "@/features/auth/hooks/useUserRoles";
 
 export default function AuthButton() {
-  const [user, setUser] = useState<User | null>(null);
-  // Track whether the current user has the admin role so we can surface admin-only UI.
-  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    // Whenever the authenticated user changes, refresh their roles to detect admin access.
-    let isMounted = true;
-
-    if (!user) {
-      setIsAdmin(false);
-      return () => {
-        isMounted = false;
-      };
-    }
-
-    const checkRoles = async () => {
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id);
-
-      if (!isMounted) return;
-
-      if (error) {
-        setIsAdmin(false);
-        return;
-      }
-
-      setIsAdmin(data?.some((r) => r.role === "admin") ?? false);
-    };
-
-    void checkRoles();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [user?.id]);
+  const { session } = useSession();
+  const user = session?.user ?? null;
+  const { hasRole: isAdmin } = useHasRole(user?.id, "admin");
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
