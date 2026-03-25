@@ -39,6 +39,14 @@ export const onCreateProfile = /* GraphQL */ `subscription OnCreateProfile(
       owner
       __typename
     }
+    reviews {
+      nextToken
+      __typename
+    }
+    reviewComments {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     profileBusinessProfileId
@@ -81,6 +89,14 @@ export const onUpdateProfile = /* GraphQL */ `subscription OnUpdateProfile(
       owner
       __typename
     }
+    reviews {
+      nextToken
+      __typename
+    }
+    reviewComments {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     profileBusinessProfileId
@@ -121,6 +137,14 @@ export const onDeleteProfile = /* GraphQL */ `subscription OnDeleteProfile(
       createdAt
       updatedAt
       owner
+      __typename
+    }
+    reviews {
+      nextToken
+      __typename
+    }
+    reviewComments {
+      nextToken
       __typename
     }
     createdAt
@@ -246,6 +270,10 @@ export const onCreateBusinessProfile = /* GraphQL */ `subscription OnCreateBusin
     is_minority_owned
     is_howard_affiliated
     verification_status
+    reviews {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     owner
@@ -284,6 +312,10 @@ export const onUpdateBusinessProfile = /* GraphQL */ `subscription OnUpdateBusin
     is_minority_owned
     is_howard_affiliated
     verification_status
+    reviews {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     owner
@@ -322,6 +354,10 @@ export const onDeleteBusinessProfile = /* GraphQL */ `subscription OnDeleteBusin
     is_minority_owned
     is_howard_affiliated
     verification_status
+    reviews {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     owner
@@ -331,4 +367,295 @@ export const onDeleteBusinessProfile = /* GraphQL */ `subscription OnDeleteBusin
 ` as GeneratedSubscription<
   APITypes.OnDeleteBusinessProfileSubscriptionVariables,
   APITypes.OnDeleteBusinessProfileSubscription
+>;
+export const onCreateReview = /* GraphQL */ `subscription OnCreateReview(
+  $filter: ModelSubscriptionReviewFilterInput
+  $owner: String
+) {
+  onCreateReview(filter: $filter, owner: $owner) {
+    id
+    rating
+    comment
+    userID
+    user {
+      id
+      full_name
+      avatar_url
+      createdAt
+      updatedAt
+      profileBusinessProfileId
+      owner
+      __typename
+    }
+    businessID
+    business {
+      id
+      profileID
+      business_name
+      category
+      description
+      address
+      phone
+      website
+      price_level
+      languages
+      is_minority_owned
+      is_howard_affiliated
+      verification_status
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+    moderation_status
+    createdAt
+    updatedAt
+    editableUntil
+    comments {
+      nextToken
+      __typename
+    }
+    owner
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnCreateReviewSubscriptionVariables,
+  APITypes.OnCreateReviewSubscription
+>;
+export const onUpdateReview = /* GraphQL */ `subscription OnUpdateReview(
+  $filter: ModelSubscriptionReviewFilterInput
+  $owner: String
+) {
+  onUpdateReview(filter: $filter, owner: $owner) {
+    id
+    rating
+    comment
+    userID
+    user {
+      id
+      full_name
+      avatar_url
+      createdAt
+      updatedAt
+      profileBusinessProfileId
+      owner
+      __typename
+    }
+    businessID
+    business {
+      id
+      profileID
+      business_name
+      category
+      description
+      address
+      phone
+      website
+      price_level
+      languages
+      is_minority_owned
+      is_howard_affiliated
+      verification_status
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+    moderation_status
+    createdAt
+    updatedAt
+    editableUntil
+    comments {
+      nextToken
+      __typename
+    }
+    owner
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnUpdateReviewSubscriptionVariables,
+  APITypes.OnUpdateReviewSubscription
+>;
+export const onDeleteReview = /* GraphQL */ `subscription OnDeleteReview(
+  $filter: ModelSubscriptionReviewFilterInput
+  $owner: String
+) {
+  onDeleteReview(filter: $filter, owner: $owner) {
+    id
+    rating
+    comment
+    userID
+    user {
+      id
+      full_name
+      avatar_url
+      createdAt
+      updatedAt
+      profileBusinessProfileId
+      owner
+      __typename
+    }
+    businessID
+    business {
+      id
+      profileID
+      business_name
+      category
+      description
+      address
+      phone
+      website
+      price_level
+      languages
+      is_minority_owned
+      is_howard_affiliated
+      verification_status
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+    moderation_status
+    createdAt
+    updatedAt
+    editableUntil
+    comments {
+      nextToken
+      __typename
+    }
+    owner
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnDeleteReviewSubscriptionVariables,
+  APITypes.OnDeleteReviewSubscription
+>;
+export const onCreateReviewComment = /* GraphQL */ `subscription OnCreateReviewComment(
+  $filter: ModelSubscriptionReviewCommentFilterInput
+  $owner: String
+) {
+  onCreateReviewComment(filter: $filter, owner: $owner) {
+    id
+    reviewID
+    review {
+      id
+      rating
+      comment
+      userID
+      businessID
+      moderation_status
+      createdAt
+      updatedAt
+      editableUntil
+      owner
+      __typename
+    }
+    userID
+    user {
+      id
+      full_name
+      avatar_url
+      createdAt
+      updatedAt
+      profileBusinessProfileId
+      owner
+      __typename
+    }
+    comment
+    createdAt
+    updatedAt
+    owner
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnCreateReviewCommentSubscriptionVariables,
+  APITypes.OnCreateReviewCommentSubscription
+>;
+export const onUpdateReviewComment = /* GraphQL */ `subscription OnUpdateReviewComment(
+  $filter: ModelSubscriptionReviewCommentFilterInput
+  $owner: String
+) {
+  onUpdateReviewComment(filter: $filter, owner: $owner) {
+    id
+    reviewID
+    review {
+      id
+      rating
+      comment
+      userID
+      businessID
+      moderation_status
+      createdAt
+      updatedAt
+      editableUntil
+      owner
+      __typename
+    }
+    userID
+    user {
+      id
+      full_name
+      avatar_url
+      createdAt
+      updatedAt
+      profileBusinessProfileId
+      owner
+      __typename
+    }
+    comment
+    createdAt
+    updatedAt
+    owner
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnUpdateReviewCommentSubscriptionVariables,
+  APITypes.OnUpdateReviewCommentSubscription
+>;
+export const onDeleteReviewComment = /* GraphQL */ `subscription OnDeleteReviewComment(
+  $filter: ModelSubscriptionReviewCommentFilterInput
+  $owner: String
+) {
+  onDeleteReviewComment(filter: $filter, owner: $owner) {
+    id
+    reviewID
+    review {
+      id
+      rating
+      comment
+      userID
+      businessID
+      moderation_status
+      createdAt
+      updatedAt
+      editableUntil
+      owner
+      __typename
+    }
+    userID
+    user {
+      id
+      full_name
+      avatar_url
+      createdAt
+      updatedAt
+      profileBusinessProfileId
+      owner
+      __typename
+    }
+    comment
+    createdAt
+    updatedAt
+    owner
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnDeleteReviewCommentSubscriptionVariables,
+  APITypes.OnDeleteReviewCommentSubscription
 >;

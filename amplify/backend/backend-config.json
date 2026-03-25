@@ -14,17 +14,19 @@
         "authConfig": {
           "additionalAuthenticationProviders": [
             {
-              "authenticationType": "AMAZON_COGNITO_USER_POOLS",
-              "userPoolConfig": {
-                "userPoolId": "authcommunityconnectfb602f9c"
-              }
+              "apiKeyConfig": {
+                "apiKeyExpirationDate": "2026-04-23T05:02:17.428Z",
+                "apiKeyExpirationDays": 30,
+                "description": "allow access"
+              },
+              "authenticationType": "API_KEY"
             }
           ],
           "defaultAuthentication": {
-            "apiKeyConfig": {
-              "apiKeyExpirationDays": 7
-            },
-            "authenticationType": "API_KEY"
+            "authenticationType": "AMAZON_COGNITO_USER_POOLS",
+            "userPoolConfig": {
+              "userPoolId": "authcommunityconnectfb602f9c"
+            }
           }
         }
       },
@@ -35,7 +37,17 @@
   "auth": {
     "communityconnectfb602f9c": {
       "customAuth": false,
-      "dependsOn": [],
+      "dependsOn": [
+        {
+          "attributes": [
+            "Arn",
+            "Name"
+          ],
+          "category": "function",
+          "resourceName": "communityconnectfb602f9cPostConfirmation",
+          "triggerProvider": "Cognito"
+        }
+      ],
       "frontendAuthConfig": {
         "mfaConfiguration": "OFF",
         "mfaTypes": [
@@ -59,6 +71,81 @@
       },
       "providerPlugin": "awscloudformation",
       "service": "Cognito"
+    }
+  },
+  "function": {
+    "communityconnectfb602f9cPostConfirmation": {
+      "build": true,
+      "dependsOn": [
+        {
+          "attributes": [
+            "GraphQLAPIIdOutput",
+            "GraphQLAPIEndpointOutput",
+            "GraphQLAPIKeyOutput"
+          ],
+          "category": "api",
+          "resourceName": "communityconnect"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "reviewPreCheck": {
+      "build": true,
+      "dependsOn": [
+        {
+          "attributes": [
+            "GraphQLAPIIdOutput",
+            "GraphQLAPIEndpointOutput",
+            "GraphQLAPIKeyOutput"
+          ],
+          "category": "api",
+          "resourceName": "communityconnect"
+        },
+        {
+          "attributes": [
+            "UserPoolId"
+          ],
+          "category": "auth",
+          "resourceName": "communityconnectfb602f9c"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    }
+  },
+  "parameters": {
+    "AMPLIFY_function_communityconnectfb602f9cPostConfirmation_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "communityconnectfb602f9cPostConfirmation"
+        }
+      ]
+    },
+    "AMPLIFY_function_communityconnectfb602f9cPostConfirmation_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "communityconnectfb602f9cPostConfirmation"
+        }
+      ]
+    },
+    "AMPLIFY_function_reviewPreCheck_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "reviewPreCheck"
+        }
+      ]
+    },
+    "AMPLIFY_function_reviewPreCheck_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "reviewPreCheck"
+        }
+      ]
     }
   }
 }

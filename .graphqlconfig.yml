@@ -1,6 +1,6 @@
 projects:
-  SeniorProjectTest:
-    schemaPath: amplify/backend/api/SeniorProjectTest/build/schema.graphql
+  communityconnect:
+    schemaPath: amplify/backend/api/communityconnect/build/schema.graphql
     includes:
       - src/graphql/**/*.ts
     excludes:

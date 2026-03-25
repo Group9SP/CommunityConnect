@@ -9,7 +9,8 @@
       "UnauthRoleName": "amplify-communityconnect-dev-7a86e-unauthRole",
       "StackName": "amplify-communityconnect-dev-7a86e",
       "StackId": "arn:aws:cloudformation:us-east-2:983883744468:stack/amplify-communityconnect-dev-7a86e/6e364e40-18c6-11f1-bbbb-020119f1829f",
-      "AmplifyAppId": "d3a39t2r8iqwh4"
+      "AmplifyAppId": "d3a39t2r8iqwh4",
+      "AuthTriggerTemplateURL": "https://s3.amazonaws.com/amplify-communityconnect-dev-7a86e-deployment/amplify-cfn-templates/auth/auth-trigger-cloudformation-template.json"
     },
     "categories": {
       "auth": {
@@ -17,6 +18,16 @@
       },
       "api": {
         "communityconnect": {}
+      },
+      "function": {
+        "reviewPreCheck": {
+          "deploymentBucketName": "amplify-communityconnect-dev-7a86e-deployment",
+          "s3Key": "amplify-builds/reviewPreCheck-4d5355666b334479646a-build.zip"
+        },
+        "communityconnectfb602f9cPostConfirmation": {
+          "deploymentBucketName": "amplify-communityconnect-dev-7a86e-deployment",
+          "s3Key": "amplify-builds/communityconnectfb602f9cPostConfirmation-5a444d423662655a664e-build.zip"
+        }
       }
     }
   }

@@ -39,6 +39,14 @@ export const createProfile = /* GraphQL */ `mutation CreateProfile(
       owner
       __typename
     }
+    reviews {
+      nextToken
+      __typename
+    }
+    reviewComments {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     profileBusinessProfileId
@@ -81,6 +89,14 @@ export const updateProfile = /* GraphQL */ `mutation UpdateProfile(
       owner
       __typename
     }
+    reviews {
+      nextToken
+      __typename
+    }
+    reviewComments {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     profileBusinessProfileId
@@ -121,6 +137,14 @@ export const deleteProfile = /* GraphQL */ `mutation DeleteProfile(
       createdAt
       updatedAt
       owner
+      __typename
+    }
+    reviews {
+      nextToken
+      __typename
+    }
+    reviewComments {
+      nextToken
       __typename
     }
     createdAt
@@ -246,6 +270,10 @@ export const createBusinessProfile = /* GraphQL */ `mutation CreateBusinessProfi
     is_minority_owned
     is_howard_affiliated
     verification_status
+    reviews {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     owner
@@ -284,6 +312,10 @@ export const updateBusinessProfile = /* GraphQL */ `mutation UpdateBusinessProfi
     is_minority_owned
     is_howard_affiliated
     verification_status
+    reviews {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     owner
@@ -322,6 +354,10 @@ export const deleteBusinessProfile = /* GraphQL */ `mutation DeleteBusinessProfi
     is_minority_owned
     is_howard_affiliated
     verification_status
+    reviews {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     owner
@@ -331,4 +367,295 @@ export const deleteBusinessProfile = /* GraphQL */ `mutation DeleteBusinessProfi
 ` as GeneratedMutation<
   APITypes.DeleteBusinessProfileMutationVariables,
   APITypes.DeleteBusinessProfileMutation
+>;
+export const createReview = /* GraphQL */ `mutation CreateReview(
+  $input: CreateReviewInput!
+  $condition: ModelReviewConditionInput
+) {
+  createReview(input: $input, condition: $condition) {
+    id
+    rating
+    comment
+    userID
+    user {
+      id
+      full_name
+      avatar_url
+      createdAt
+      updatedAt
+      profileBusinessProfileId
+      owner
+      __typename
+    }
+    businessID
+    business {
+      id
+      profileID
+      business_name
+      category
+      description
+      address
+      phone
+      website
+      price_level
+      languages
+      is_minority_owned
+      is_howard_affiliated
+      verification_status
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+    moderation_status
+    createdAt
+    updatedAt
+    editableUntil
+    comments {
+      nextToken
+      __typename
+    }
+    owner
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.CreateReviewMutationVariables,
+  APITypes.CreateReviewMutation
+>;
+export const updateReview = /* GraphQL */ `mutation UpdateReview(
+  $input: UpdateReviewInput!
+  $condition: ModelReviewConditionInput
+) {
+  updateReview(input: $input, condition: $condition) {
+    id
+    rating
+    comment
+    userID
+    user {
+      id
+      full_name
+      avatar_url
+      createdAt
+      updatedAt
+      profileBusinessProfileId
+      owner
+      __typename
+    }
+    businessID
+    business {
+      id
+      profileID
+      business_name
+      category
+      description
+      address
+      phone
+      website
+      price_level
+      languages
+      is_minority_owned
+      is_howard_affiliated
+      verification_status
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+    moderation_status
+    createdAt
+    updatedAt
+    editableUntil
+    comments {
+      nextToken
+      __typename
+    }
+    owner
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.UpdateReviewMutationVariables,
+  APITypes.UpdateReviewMutation
+>;
+export const deleteReview = /* GraphQL */ `mutation DeleteReview(
+  $input: DeleteReviewInput!
+  $condition: ModelReviewConditionInput
+) {
+  deleteReview(input: $input, condition: $condition) {
+    id
+    rating
+    comment
+    userID
+    user {
+      id
+      full_name
+      avatar_url
+      createdAt
+      updatedAt
+      profileBusinessProfileId
+      owner
+      __typename
+    }
+    businessID
+    business {
+      id
+      profileID
+      business_name
+      category
+      description
+      address
+      phone
+      website
+      price_level
+      languages
+      is_minority_owned
+      is_howard_affiliated
+      verification_status
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+    moderation_status
+    createdAt
+    updatedAt
+    editableUntil
+    comments {
+      nextToken
+      __typename
+    }
+    owner
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.DeleteReviewMutationVariables,
+  APITypes.DeleteReviewMutation
+>;
+export const createReviewComment = /* GraphQL */ `mutation CreateReviewComment(
+  $input: CreateReviewCommentInput!
+  $condition: ModelReviewCommentConditionInput
+) {
+  createReviewComment(input: $input, condition: $condition) {
+    id
+    reviewID
+    review {
+      id
+      rating
+      comment
+      userID
+      businessID
+      moderation_status
+      createdAt
+      updatedAt
+      editableUntil
+      owner
+      __typename
+    }
+    userID
+    user {
+      id
+      full_name
+      avatar_url
+      createdAt
+      updatedAt
+      profileBusinessProfileId
+      owner
+      __typename
+    }
+    comment
+    createdAt
+    updatedAt
+    owner
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.CreateReviewCommentMutationVariables,
+  APITypes.CreateReviewCommentMutation
+>;
+export const updateReviewComment = /* GraphQL */ `mutation UpdateReviewComment(
+  $input: UpdateReviewCommentInput!
+  $condition: ModelReviewCommentConditionInput
+) {
+  updateReviewComment(input: $input, condition: $condition) {
+    id
+    reviewID
+    review {
+      id
+      rating
+      comment
+      userID
+      businessID
+      moderation_status
+      createdAt
+      updatedAt
+      editableUntil
+      owner
+      __typename
+    }
+    userID
+    user {
+      id
+      full_name
+      avatar_url
+      createdAt
+      updatedAt
+      profileBusinessProfileId
+      owner
+      __typename
+    }
+    comment
+    createdAt
+    updatedAt
+    owner
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.UpdateReviewCommentMutationVariables,
+  APITypes.UpdateReviewCommentMutation
+>;
+export const deleteReviewComment = /* GraphQL */ `mutation DeleteReviewComment(
+  $input: DeleteReviewCommentInput!
+  $condition: ModelReviewCommentConditionInput
+) {
+  deleteReviewComment(input: $input, condition: $condition) {
+    id
+    reviewID
+    review {
+      id
+      rating
+      comment
+      userID
+      businessID
+      moderation_status
+      createdAt
+      updatedAt
+      editableUntil
+      owner
+      __typename
+    }
+    userID
+    user {
+      id
+      full_name
+      avatar_url
+      createdAt
+      updatedAt
+      profileBusinessProfileId
+      owner
+      __typename
+    }
+    comment
+    createdAt
+    updatedAt
+    owner
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.DeleteReviewCommentMutationVariables,
+  APITypes.DeleteReviewCommentMutation
 >;
