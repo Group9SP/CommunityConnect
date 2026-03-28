@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { User } from "@supabase/supabase-js";
-import { useToast } from "@/hooks/use-toast";
 import { LogOut, User as UserIcon } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,45 +11,56 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { fetchAuthSession, signOut, getCurrentUser } from "aws-amplify/auth";
 
 export default function AuthButton() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
+    // Get current user from Amplify Auth
+    getCurrentUser()
+      .then(setUser)
+      .catch(() => setUser(null));
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
+    // Listen for auth changes (Amplify Hub)
+    const listener = (data: any) => {
+      switch (data.payload.event) {
+        case 'signedIn':
+          getCurrentUser().then(setUser);
+          break;
+        case 'signedOut':
+          setUser(null);
+          break;
+        default:
+          break;
       }
-    );
-
-    return () => subscription.unsubscribe();
+    };
+    import('aws-amplify/utils').then(({ Hub }) => {
+      Hub.listen('auth', listener);
+    });
+    return () => {
+      // No explicit unsubscribe needed for Hub.listen
+    };
   }, []);
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    
-    if (error) {
+    try {
+      await signOut();
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
+      setUser(null);
+      navigate("/");
+    } catch (error: any) {
       toast({
         title: "Logout Failed",
-        description: error.message,
+        description: error.message || String(error),
         variant: "destructive",
       });
-      return;
     }
-
-    toast({
-      title: "Logged Out",
-      description: "You have been successfully logged out.",
-    });
-    navigate("/");
   };
 
   if (!user) {
@@ -71,7 +80,7 @@ export default function AuthButton() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>
-          {user.user_metadata?.full_name || user.email}
+          {user.signInDetails?.loginId || user.username}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>
