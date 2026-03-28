@@ -2,7 +2,6 @@ import { useParams, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { generateClient } from "aws-amplify/api";
 import { getCurrentUser } from "aws-amplify/auth";
-import { listReviews } from "@/graphql/queries";
 import { ModerationStatus } from "@/API";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,10 +14,9 @@ import coffeeImage from "@/assets/business-coffee.jpg";
 import { BusinessOpenStatus } from "@/components/BusinessOpenStatus";
 import { ReviewStarChart } from "@/components/ReviewStarChart";
 
-
 const client = generateClient();
 
-// Inline mutation that skips nested user/business resolvers to avoid null ID error
+// Inline mutation — skips nested user/business resolvers to avoid null ID error
 const createReviewMutation = /* GraphQL */ `
   mutation CreateReview($input: CreateReviewInput!) {
     createReview(input: $input) {
@@ -43,17 +41,17 @@ const BusinessDetail = () => {
   const [submitted, setSubmitted] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  // State for reviews
+  // Reviews state
   const [reviews, setReviews] = useState<any[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
   const [reviewsError, setReviewsError] = useState("");
 
-  // Add edit/delete review state
+  // Edit/delete review state
   const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
   const [editComment, setEditComment] = useState("");
   const [editRating, setEditRating] = useState(5);
 
-  // Add dropdown state
+  // Dropdown state
   const [dropdownOpenId, setDropdownOpenId] = useState<string | null>(null);
 
   // Fetch current user on mount
@@ -70,7 +68,9 @@ const BusinessDetail = () => {
     fetchUser();
   }, []);
 
-  // fetchReviews outside useEffect so it can be called after submit
+  // fetchReviews defined outside useEffect so it can be called after submit
+  // Uses userPool when logged in (so nested user { full_name } resolves correctly)
+  // Uses apiKey for public/unauthenticated users (Review has { allow: public } rule)
   const fetchReviews = async () => {
     if (!id) return;
     setLoadingReviews(true);
@@ -88,7 +88,7 @@ const BusinessDetail = () => {
                 businessID
                 moderation_status
                 createdAt
-                user { full_name }
+                user { full_name avatar_url }
               }
             }
           }
@@ -97,6 +97,7 @@ const BusinessDetail = () => {
           filter: { businessID: { eq: id } },
           limit: 50,
         },
+        authMode: "apiKey", // Always apiKey — returns ALL reviews, not just owner's
       });
       const items =
         (res as any).data?.listReviews?.items ||
@@ -105,14 +106,16 @@ const BusinessDetail = () => {
       setReviews(items);
     } catch (err: any) {
       setReviewsError("Failed to load reviews");
+      console.error("fetchReviews error:", err);
     } finally {
       setLoadingReviews(false);
     }
   };
 
+  // Re-fetch when page loads or when currentUserId resolves
   useEffect(() => {
     fetchReviews();
-  }, [id]);
+  }, [id, currentUserId]);
 
   // Sample business data
   const business = {
@@ -162,7 +165,6 @@ const BusinessDetail = () => {
       return;
     }
 
-    // Check if Profile exists before allowing review submission
     const profileExists = await checkProfileExists(currentUserId);
     if (!profileExists) {
       setSubmitError("Your profile is still being created. Please wait a moment and try again.");
@@ -180,10 +182,8 @@ const BusinessDetail = () => {
 
     try {
       await client.graphql({
-        query: createReviewMutation, // Uses inline mutation — avoids nested resolver null ID error
-        variables: {
-          input: reviewInput,
-        },
+        query: createReviewMutation,
+        variables: { input: reviewInput },
         authMode: "userPool",
       });
       setSubmitted(true);
@@ -195,10 +195,10 @@ const BusinessDetail = () => {
     }
   };
 
-  // Helper: Get current user's review (if any)
+  // Get current user's review (if any)
   const userReview = reviews.find((r) => r.userID === currentUserId);
 
-  // Edit review handler
+  // Open edit form for a review
   const handleEditReview = (review: any) => {
     setEditingReviewId(review.id);
     setEditComment(review.comment);
@@ -239,7 +239,7 @@ const BusinessDetail = () => {
     }
   };
 
-  // Delete review
+  // Delete a review
   const handleDeleteReview = async (reviewId: string) => {
     if (!window.confirm("Are you sure you want to delete your review?")) return;
     try {
@@ -280,10 +280,11 @@ const BusinessDetail = () => {
         <img
           src={business.images[0]}
           alt={business.name}
-          className="w-full h-72 md:h-96 object-cover rounded-lg shadow mb-8"
-          style={{ borderRadius: 0, boxShadow: 'none', marginBottom: 0 }}
+          className="w-full h-72 md:h-96 object-cover"
+          style={{ borderRadius: 0, boxShadow: "none", marginBottom: 0 }}
         />
       </div>
+
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col gap-4 justify-center">
           <div className="flex gap-2 mb-2">
@@ -302,7 +303,9 @@ const BusinessDetail = () => {
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star
                     key={i}
-                    className={`h-5 w-5 ${i < Math.floor(business.rating) ? "fill-accent text-accent" : "fill-muted text-muted"}`}
+                    className={`h-5 w-5 ${
+                      i < Math.floor(business.rating) ? "fill-accent text-accent" : "fill-muted text-muted"
+                    }`}
                   />
                 ))}
               </div>
@@ -315,7 +318,6 @@ const BusinessDetail = () => {
               ))}
             </div>
           </div>
-          {/* Open/Closed status below stars */}
           <div className="mb-2">
             <BusinessOpenStatus hours={business.hours} />
           </div>
@@ -323,14 +325,21 @@ const BusinessDetail = () => {
             <MapPin className="h-4 w-4" /> {business.location}
             <Phone className="h-4 w-4 ml-4" /> {business.phone}
             <Globe className="h-4 w-4 ml-4" />
-            <a href={`https://${business.website}`} className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
+            <a
+              href={`https://${business.website}`}
+              className="text-primary hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {business.website}
             </a>
           </div>
           <div className="text-base leading-relaxed mb-2">{business.description}</div>
           <div className="flex flex-wrap gap-2 mb-2">
             {business.amenities.map((amenity) => (
-              <Badge key={amenity} variant="secondary">{amenity}</Badge>
+              <Badge key={amenity} variant="secondary">
+                {amenity}
+              </Badge>
             ))}
           </div>
           <div className="text-xs text-muted-foreground">Hours: {business.hours}</div>
@@ -341,7 +350,8 @@ const BusinessDetail = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
             <Separator />
-            {/* Review summary section with create/edit button and star chart */}
+
+            {/* Review summary + star chart */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
               <div>
                 <h2 className="text-2xl font-semibold mb-1">Customer Reviews</h2>
@@ -349,26 +359,28 @@ const BusinessDetail = () => {
                   <span className="text-3xl font-bold">{business.rating}</span>
                   <div className="flex items-center gap-1">
                     {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className={`h-5 w-5 ${i < Math.floor(business.rating) ? "fill-accent text-accent" : "fill-muted text-muted"}`} />
+                      <Star
+                        key={i}
+                        className={`h-5 w-5 ${
+                          i < Math.floor(business.rating) ? "fill-accent text-accent" : "fill-muted text-muted"
+                        }`}
+                      />
                     ))}
                   </div>
                   <span className="text-muted-foreground">({business.reviewCount} reviews)</span>
                 </div>
-                {/* Star breakdown chart */}
                 <ReviewStarChart reviews={reviews} />
               </div>
               <div>
                 <Button
                   onClick={() => {
                     if (userReview) {
-                      // Scroll to user's review and open edit
                       const el = document.getElementById(`review-${userReview.id}`);
                       if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
                       setEditingReviewId(userReview.id);
                       setEditComment(userReview.comment);
                       setEditRating(userReview.rating);
                     } else {
-                      // Scroll to form
                       const el = document.getElementById("review-form");
                       if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
                     }
@@ -380,12 +392,13 @@ const BusinessDetail = () => {
                 </Button>
               </div>
             </div>
-            {/* End review summary section */}
+
             <Separator />
+
             <div>
-              {/* Reviews list and form */}
+              {/* All reviews list */}
               <div className="mt-8">
-                <h3 className="text-xl font-bold mb-2">All Reviews</h3>
+                <h3 className="text-xl font-bold mb-4">All Reviews</h3>
                 {loadingReviews ? (
                   <div>Loading reviews...</div>
                 ) : reviewsError ? (
@@ -396,20 +409,23 @@ const BusinessDetail = () => {
                   <div className="space-y-4">
                     {reviews.map((review, index) => {
                       const isCurrentUser = review.userID === currentUserId;
-                      const userName = review.user?.full_name || review.userName || review.userID || "Anonymous";
+                      const userName = review.user?.full_name || "Community Member";
                       return (
-                        <div key={review.id || index} className="relative" id={`review-${review.id}`}> {/* Add id for scroll */}
+                        <div key={review.id || index} className="relative" id={`review-${review.id}`}>
                           <ReviewCard
                             userName={userName}
                             rating={review.rating}
                             date={review.createdAt ? new Date(review.createdAt).toLocaleDateString() : ""}
                             comment={review.comment}
                           />
+                          {/* Edit/delete dropdown — only visible to review owner */}
                           {isCurrentUser && (
                             <div className="absolute top-2 right-2">
                               <button
                                 aria-label="More options"
-                                onClick={() => setDropdownOpenId(dropdownOpenId === review.id ? null : review.id)}
+                                onClick={() =>
+                                  setDropdownOpenId(dropdownOpenId === review.id ? null : review.id)
+                                }
                                 className="p-1 rounded hover:bg-muted"
                                 type="button"
                               >
@@ -439,35 +455,45 @@ const BusinessDetail = () => {
                               )}
                             </div>
                           )}
+                          {/* Inline edit form */}
                           {editingReviewId === review.id && (
                             <form
-                              onSubmit={e => {
+                              onSubmit={(e) => {
                                 e.preventDefault();
                                 handleSaveEdit();
                               }}
-                              className="space-y-2 mt-2"
+                              className="space-y-2 mt-2 p-4 border rounded"
                             >
                               <label className="block font-semibold">Edit Rating:</label>
                               <select
                                 value={editRating}
-                                onChange={e => setEditRating(Number(e.target.value))}
+                                onChange={(e) => setEditRating(Number(e.target.value))}
                                 className="border rounded px-2 py-1"
                                 required
                               >
-                                {[1, 2, 3, 4, 5].map(n => (
-                                  <option key={n} value={n}>{n}</option>
+                                {[1, 2, 3, 4, 5].map((n) => (
+                                  <option key={n} value={n}>
+                                    {n}
+                                  </option>
                                 ))}
                               </select>
                               <label className="block font-semibold">Edit Comment:</label>
                               <textarea
                                 className="w-full border rounded p-2"
                                 value={editComment}
-                                onChange={e => setEditComment(e.target.value)}
+                                onChange={(e) => setEditComment(e.target.value)}
                                 required
                               />
                               <div className="flex gap-2">
-                                <Button type="submit" size="sm">Save</Button>
-                                <Button type="button" size="sm" variant="ghost" onClick={() => setEditingReviewId(null)}>
+                                <Button type="submit" size="sm">
+                                  Save
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => setEditingReviewId(null)}
+                                >
                                   Cancel
                                 </Button>
                               </div>
@@ -479,10 +505,12 @@ const BusinessDetail = () => {
                   </div>
                 )}
               </div>
-              {/* Review form section */}
+
+              {/* Review submission form */}
               <div className="mt-8" id="review-form">
                 {!userReview && !submitted && (
                   <form onSubmit={handleReviewSubmit} className="space-y-4">
+                    <h3 className="text-xl font-bold mb-2">Leave a Review</h3>
                     <div>
                       <label className="block font-semibold" htmlFor="review-rating">
                         Your Rating:
@@ -522,7 +550,9 @@ const BusinessDetail = () => {
                   </form>
                 )}
                 {userReview && (
-                  <div className="text-muted-foreground text-sm">You have already left a review. You can edit it above.</div>
+                  <div className="text-muted-foreground text-sm">
+                    You have already left a review. You can edit it above.
+                  </div>
                 )}
                 {submitted && (
                   <div className="text-green-600 font-semibold">Thank you for your review!</div>
@@ -531,6 +561,7 @@ const BusinessDetail = () => {
             </div>
           </div>
 
+          {/* Business info sidebar */}
           <div className="lg:col-span-1">
             <Card className="sticky top-24">
               <CardHeader>

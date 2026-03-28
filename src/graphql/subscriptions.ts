@@ -8,156 +8,6 @@ type GeneratedSubscription<InputType, OutputType> = string & {
   __generatedSubscriptionOutput: OutputType;
 };
 
-export const onCreateProfile = /* GraphQL */ `subscription OnCreateProfile(
-  $filter: ModelSubscriptionProfileFilterInput
-  $owner: String
-) {
-  onCreateProfile(filter: $filter, owner: $owner) {
-    id
-    full_name
-    avatar_url
-    roles {
-      nextToken
-      __typename
-    }
-    businessProfile {
-      id
-      profileID
-      business_name
-      category
-      description
-      address
-      phone
-      website
-      price_level
-      languages
-      is_minority_owned
-      is_howard_affiliated
-      verification_status
-      createdAt
-      updatedAt
-      owner
-      __typename
-    }
-    reviews {
-      nextToken
-      __typename
-    }
-    reviewComments {
-      nextToken
-      __typename
-    }
-    createdAt
-    updatedAt
-    profileBusinessProfileId
-    owner
-    __typename
-  }
-}
-` as GeneratedSubscription<
-  APITypes.OnCreateProfileSubscriptionVariables,
-  APITypes.OnCreateProfileSubscription
->;
-export const onUpdateProfile = /* GraphQL */ `subscription OnUpdateProfile(
-  $filter: ModelSubscriptionProfileFilterInput
-  $owner: String
-) {
-  onUpdateProfile(filter: $filter, owner: $owner) {
-    id
-    full_name
-    avatar_url
-    roles {
-      nextToken
-      __typename
-    }
-    businessProfile {
-      id
-      profileID
-      business_name
-      category
-      description
-      address
-      phone
-      website
-      price_level
-      languages
-      is_minority_owned
-      is_howard_affiliated
-      verification_status
-      createdAt
-      updatedAt
-      owner
-      __typename
-    }
-    reviews {
-      nextToken
-      __typename
-    }
-    reviewComments {
-      nextToken
-      __typename
-    }
-    createdAt
-    updatedAt
-    profileBusinessProfileId
-    owner
-    __typename
-  }
-}
-` as GeneratedSubscription<
-  APITypes.OnUpdateProfileSubscriptionVariables,
-  APITypes.OnUpdateProfileSubscription
->;
-export const onDeleteProfile = /* GraphQL */ `subscription OnDeleteProfile(
-  $filter: ModelSubscriptionProfileFilterInput
-  $owner: String
-) {
-  onDeleteProfile(filter: $filter, owner: $owner) {
-    id
-    full_name
-    avatar_url
-    roles {
-      nextToken
-      __typename
-    }
-    businessProfile {
-      id
-      profileID
-      business_name
-      category
-      description
-      address
-      phone
-      website
-      price_level
-      languages
-      is_minority_owned
-      is_howard_affiliated
-      verification_status
-      createdAt
-      updatedAt
-      owner
-      __typename
-    }
-    reviews {
-      nextToken
-      __typename
-    }
-    reviewComments {
-      nextToken
-      __typename
-    }
-    createdAt
-    updatedAt
-    profileBusinessProfileId
-    owner
-    __typename
-  }
-}
-` as GeneratedSubscription<
-  APITypes.OnDeleteProfileSubscriptionVariables,
-  APITypes.OnDeleteProfileSubscription
->;
 export const onCreateUserRole = /* GraphQL */ `subscription OnCreateUserRole(
   $filter: ModelSubscriptionUserRoleFilterInput
   $owner: String
@@ -367,6 +217,156 @@ export const onDeleteBusinessProfile = /* GraphQL */ `subscription OnDeleteBusin
 ` as GeneratedSubscription<
   APITypes.OnDeleteBusinessProfileSubscriptionVariables,
   APITypes.OnDeleteBusinessProfileSubscription
+>;
+export const onCreateProfile = /* GraphQL */ `subscription OnCreateProfile(
+  $filter: ModelSubscriptionProfileFilterInput
+  $owner: String
+) {
+  onCreateProfile(filter: $filter, owner: $owner) {
+    id
+    full_name
+    avatar_url
+    roles {
+      nextToken
+      __typename
+    }
+    businessProfile {
+      id
+      profileID
+      business_name
+      category
+      description
+      address
+      phone
+      website
+      price_level
+      languages
+      is_minority_owned
+      is_howard_affiliated
+      verification_status
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+    reviews {
+      nextToken
+      __typename
+    }
+    reviewComments {
+      nextToken
+      __typename
+    }
+    createdAt
+    updatedAt
+    profileBusinessProfileId
+    owner
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnCreateProfileSubscriptionVariables,
+  APITypes.OnCreateProfileSubscription
+>;
+export const onUpdateProfile = /* GraphQL */ `subscription OnUpdateProfile(
+  $filter: ModelSubscriptionProfileFilterInput
+  $owner: String
+) {
+  onUpdateProfile(filter: $filter, owner: $owner) {
+    id
+    full_name
+    avatar_url
+    roles {
+      nextToken
+      __typename
+    }
+    businessProfile {
+      id
+      profileID
+      business_name
+      category
+      description
+      address
+      phone
+      website
+      price_level
+      languages
+      is_minority_owned
+      is_howard_affiliated
+      verification_status
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+    reviews {
+      nextToken
+      __typename
+    }
+    reviewComments {
+      nextToken
+      __typename
+    }
+    createdAt
+    updatedAt
+    profileBusinessProfileId
+    owner
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnUpdateProfileSubscriptionVariables,
+  APITypes.OnUpdateProfileSubscription
+>;
+export const onDeleteProfile = /* GraphQL */ `subscription OnDeleteProfile(
+  $filter: ModelSubscriptionProfileFilterInput
+  $owner: String
+) {
+  onDeleteProfile(filter: $filter, owner: $owner) {
+    id
+    full_name
+    avatar_url
+    roles {
+      nextToken
+      __typename
+    }
+    businessProfile {
+      id
+      profileID
+      business_name
+      category
+      description
+      address
+      phone
+      website
+      price_level
+      languages
+      is_minority_owned
+      is_howard_affiliated
+      verification_status
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+    reviews {
+      nextToken
+      __typename
+    }
+    reviewComments {
+      nextToken
+      __typename
+    }
+    createdAt
+    updatedAt
+    profileBusinessProfileId
+    owner
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnDeleteProfileSubscriptionVariables,
+  APITypes.OnDeleteProfileSubscription
 >;
 export const onCreateReview = /* GraphQL */ `subscription OnCreateReview(
   $filter: ModelSubscriptionReviewFilterInput

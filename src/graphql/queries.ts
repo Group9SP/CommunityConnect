@@ -8,77 +8,6 @@ type GeneratedQuery<InputType, OutputType> = string & {
   __generatedQueryOutput: OutputType;
 };
 
-export const getProfile = /* GraphQL */ `query GetProfile($id: ID!) {
-  getProfile(id: $id) {
-    id
-    full_name
-    avatar_url
-    roles {
-      nextToken
-      __typename
-    }
-    businessProfile {
-      id
-      profileID
-      business_name
-      category
-      description
-      address
-      phone
-      website
-      price_level
-      languages
-      is_minority_owned
-      is_howard_affiliated
-      verification_status
-      createdAt
-      updatedAt
-      owner
-      __typename
-    }
-    reviews {
-      nextToken
-      __typename
-    }
-    reviewComments {
-      nextToken
-      __typename
-    }
-    createdAt
-    updatedAt
-    profileBusinessProfileId
-    owner
-    __typename
-  }
-}
-` as GeneratedQuery<
-  APITypes.GetProfileQueryVariables,
-  APITypes.GetProfileQuery
->;
-export const listProfiles = /* GraphQL */ `query ListProfiles(
-  $filter: ModelProfileFilterInput
-  $limit: Int
-  $nextToken: String
-) {
-  listProfiles(filter: $filter, limit: $limit, nextToken: $nextToken) {
-    items {
-      id
-      full_name
-      avatar_url
-      createdAt
-      updatedAt
-      profileBusinessProfileId
-      owner
-      __typename
-    }
-    nextToken
-    __typename
-  }
-}
-` as GeneratedQuery<
-  APITypes.ListProfilesQueryVariables,
-  APITypes.ListProfilesQuery
->;
 export const getUserRole = /* GraphQL */ `query GetUserRole($id: ID!) {
   getUserRole(id: $id) {
     id
@@ -229,6 +158,77 @@ export const userRolesByProfileID = /* GraphQL */ `query UserRolesByProfileID(
 ` as GeneratedQuery<
   APITypes.UserRolesByProfileIDQueryVariables,
   APITypes.UserRolesByProfileIDQuery
+>;
+export const getProfile = /* GraphQL */ `query GetProfile($id: ID!) {
+  getProfile(id: $id) {
+    id
+    full_name
+    avatar_url
+    roles {
+      nextToken
+      __typename
+    }
+    businessProfile {
+      id
+      profileID
+      business_name
+      category
+      description
+      address
+      phone
+      website
+      price_level
+      languages
+      is_minority_owned
+      is_howard_affiliated
+      verification_status
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+    reviews {
+      nextToken
+      __typename
+    }
+    reviewComments {
+      nextToken
+      __typename
+    }
+    createdAt
+    updatedAt
+    profileBusinessProfileId
+    owner
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.GetProfileQueryVariables,
+  APITypes.GetProfileQuery
+>;
+export const listProfiles = /* GraphQL */ `query ListProfiles(
+  $filter: ModelProfileFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listProfiles(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      id
+      full_name
+      avatar_url
+      createdAt
+      updatedAt
+      profileBusinessProfileId
+      owner
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.ListProfilesQueryVariables,
+  APITypes.ListProfilesQuery
 >;
 export const getReview = /* GraphQL */ `query GetReview($id: ID!) {
   getReview(id: $id) {

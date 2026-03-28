@@ -399,25 +399,6 @@ export type DeleteReviewCommentInput = {
   id: string,
 };
 
-export type ModelProfileFilterInput = {
-  id?: ModelIDInput | null,
-  full_name?: ModelStringInput | null,
-  avatar_url?: ModelStringInput | null,
-  createdAt?: ModelStringInput | null,
-  updatedAt?: ModelStringInput | null,
-  and?: Array< ModelProfileFilterInput | null > | null,
-  or?: Array< ModelProfileFilterInput | null > | null,
-  not?: ModelProfileFilterInput | null,
-  profileBusinessProfileId?: ModelIDInput | null,
-  owner?: ModelStringInput | null,
-};
-
-export type ModelProfileConnection = {
-  __typename: "ModelProfileConnection",
-  items:  Array<Profile | null >,
-  nextToken?: string | null,
-};
-
 export type ModelUserRoleFilterInput = {
   id?: ModelIDInput | null,
   profileID?: ModelIDInput | null,
@@ -464,6 +445,25 @@ export enum ModelSortDirection {
 }
 
 
+export type ModelProfileFilterInput = {
+  id?: ModelIDInput | null,
+  full_name?: ModelStringInput | null,
+  avatar_url?: ModelStringInput | null,
+  createdAt?: ModelStringInput | null,
+  updatedAt?: ModelStringInput | null,
+  and?: Array< ModelProfileFilterInput | null > | null,
+  or?: Array< ModelProfileFilterInput | null > | null,
+  not?: ModelProfileFilterInput | null,
+  profileBusinessProfileId?: ModelIDInput | null,
+  owner?: ModelStringInput | null,
+};
+
+export type ModelProfileConnection = {
+  __typename: "ModelProfileConnection",
+  items:  Array<Profile | null >,
+  nextToken?: string | null,
+};
+
 export type ModelReviewFilterInput = {
   id?: ModelIDInput | null,
   rating?: ModelIntInput | null,
@@ -493,15 +493,14 @@ export type ModelReviewCommentFilterInput = {
   owner?: ModelStringInput | null,
 };
 
-export type ModelSubscriptionProfileFilterInput = {
+export type ModelSubscriptionUserRoleFilterInput = {
   id?: ModelSubscriptionIDInput | null,
-  full_name?: ModelSubscriptionStringInput | null,
-  avatar_url?: ModelSubscriptionStringInput | null,
+  profileID?: ModelSubscriptionIDInput | null,
+  role?: ModelSubscriptionStringInput | null,
   createdAt?: ModelSubscriptionStringInput | null,
   updatedAt?: ModelSubscriptionStringInput | null,
-  and?: Array< ModelSubscriptionProfileFilterInput | null > | null,
-  or?: Array< ModelSubscriptionProfileFilterInput | null > | null,
-  profileBusinessProfileId?: ModelSubscriptionIDInput | null,
+  and?: Array< ModelSubscriptionUserRoleFilterInput | null > | null,
+  or?: Array< ModelSubscriptionUserRoleFilterInput | null > | null,
   owner?: ModelStringInput | null,
 };
 
@@ -533,17 +532,6 @@ export type ModelSubscriptionStringInput = {
   beginsWith?: string | null,
   in?: Array< string | null > | null,
   notIn?: Array< string | null > | null,
-};
-
-export type ModelSubscriptionUserRoleFilterInput = {
-  id?: ModelSubscriptionIDInput | null,
-  profileID?: ModelSubscriptionIDInput | null,
-  role?: ModelSubscriptionStringInput | null,
-  createdAt?: ModelSubscriptionStringInput | null,
-  updatedAt?: ModelSubscriptionStringInput | null,
-  and?: Array< ModelSubscriptionUserRoleFilterInput | null > | null,
-  or?: Array< ModelSubscriptionUserRoleFilterInput | null > | null,
-  owner?: ModelStringInput | null,
 };
 
 export type ModelSubscriptionBusinessProfileFilterInput = {
@@ -582,6 +570,18 @@ export type ModelSubscriptionIntInput = {
 export type ModelSubscriptionBooleanInput = {
   ne?: boolean | null,
   eq?: boolean | null,
+};
+
+export type ModelSubscriptionProfileFilterInput = {
+  id?: ModelSubscriptionIDInput | null,
+  full_name?: ModelSubscriptionStringInput | null,
+  avatar_url?: ModelSubscriptionStringInput | null,
+  createdAt?: ModelSubscriptionStringInput | null,
+  updatedAt?: ModelSubscriptionStringInput | null,
+  and?: Array< ModelSubscriptionProfileFilterInput | null > | null,
+  or?: Array< ModelSubscriptionProfileFilterInput | null > | null,
+  profileBusinessProfileId?: ModelSubscriptionIDInput | null,
+  owner?: ModelStringInput | null,
 };
 
 export type ModelSubscriptionReviewFilterInput = {
@@ -1247,77 +1247,6 @@ export type DeleteReviewCommentMutation = {
   } | null,
 };
 
-export type GetProfileQueryVariables = {
-  id: string,
-};
-
-export type GetProfileQuery = {
-  getProfile?:  {
-    __typename: "Profile",
-    id: string,
-    full_name: string,
-    avatar_url?: string | null,
-    roles?:  {
-      __typename: "ModelUserRoleConnection",
-      nextToken?: string | null,
-    } | null,
-    businessProfile?:  {
-      __typename: "BusinessProfile",
-      id: string,
-      profileID: string,
-      business_name: string,
-      category: string,
-      description?: string | null,
-      address?: string | null,
-      phone?: string | null,
-      website?: string | null,
-      price_level?: number | null,
-      languages?: Array< string | null > | null,
-      is_minority_owned?: boolean | null,
-      is_howard_affiliated?: boolean | null,
-      verification_status?: VerificationStatus | null,
-      createdAt: string,
-      updatedAt: string,
-      owner?: string | null,
-    } | null,
-    reviews?:  {
-      __typename: "ModelReviewConnection",
-      nextToken?: string | null,
-    } | null,
-    reviewComments?:  {
-      __typename: "ModelReviewCommentConnection",
-      nextToken?: string | null,
-    } | null,
-    createdAt: string,
-    updatedAt: string,
-    profileBusinessProfileId?: string | null,
-    owner?: string | null,
-  } | null,
-};
-
-export type ListProfilesQueryVariables = {
-  filter?: ModelProfileFilterInput | null,
-  limit?: number | null,
-  nextToken?: string | null,
-};
-
-export type ListProfilesQuery = {
-  listProfiles?:  {
-    __typename: "ModelProfileConnection",
-    items:  Array< {
-      __typename: "Profile",
-      id: string,
-      full_name: string,
-      avatar_url?: string | null,
-      createdAt: string,
-      updatedAt: string,
-      profileBusinessProfileId?: string | null,
-      owner?: string | null,
-    } | null >,
-    nextToken?: string | null,
-  } | null,
-};
-
 export type GetUserRoleQueryVariables = {
   id: string,
 };
@@ -1456,6 +1385,77 @@ export type UserRolesByProfileIDQuery = {
       role: AppRole,
       createdAt: string,
       updatedAt: string,
+      owner?: string | null,
+    } | null >,
+    nextToken?: string | null,
+  } | null,
+};
+
+export type GetProfileQueryVariables = {
+  id: string,
+};
+
+export type GetProfileQuery = {
+  getProfile?:  {
+    __typename: "Profile",
+    id: string,
+    full_name: string,
+    avatar_url?: string | null,
+    roles?:  {
+      __typename: "ModelUserRoleConnection",
+      nextToken?: string | null,
+    } | null,
+    businessProfile?:  {
+      __typename: "BusinessProfile",
+      id: string,
+      profileID: string,
+      business_name: string,
+      category: string,
+      description?: string | null,
+      address?: string | null,
+      phone?: string | null,
+      website?: string | null,
+      price_level?: number | null,
+      languages?: Array< string | null > | null,
+      is_minority_owned?: boolean | null,
+      is_howard_affiliated?: boolean | null,
+      verification_status?: VerificationStatus | null,
+      createdAt: string,
+      updatedAt: string,
+      owner?: string | null,
+    } | null,
+    reviews?:  {
+      __typename: "ModelReviewConnection",
+      nextToken?: string | null,
+    } | null,
+    reviewComments?:  {
+      __typename: "ModelReviewCommentConnection",
+      nextToken?: string | null,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+    profileBusinessProfileId?: string | null,
+    owner?: string | null,
+  } | null,
+};
+
+export type ListProfilesQueryVariables = {
+  filter?: ModelProfileFilterInput | null,
+  limit?: number | null,
+  nextToken?: string | null,
+};
+
+export type ListProfilesQuery = {
+  listProfiles?:  {
+    __typename: "ModelProfileConnection",
+    items:  Array< {
+      __typename: "Profile",
+      id: string,
+      full_name: string,
+      avatar_url?: string | null,
+      createdAt: string,
+      updatedAt: string,
+      profileBusinessProfileId?: string | null,
       owner?: string | null,
     } | null >,
     nextToken?: string | null,
@@ -1710,153 +1710,6 @@ export type ReviewCommentsByUserIDQuery = {
   } | null,
 };
 
-export type OnCreateProfileSubscriptionVariables = {
-  filter?: ModelSubscriptionProfileFilterInput | null,
-  owner?: string | null,
-};
-
-export type OnCreateProfileSubscription = {
-  onCreateProfile?:  {
-    __typename: "Profile",
-    id: string,
-    full_name: string,
-    avatar_url?: string | null,
-    roles?:  {
-      __typename: "ModelUserRoleConnection",
-      nextToken?: string | null,
-    } | null,
-    businessProfile?:  {
-      __typename: "BusinessProfile",
-      id: string,
-      profileID: string,
-      business_name: string,
-      category: string,
-      description?: string | null,
-      address?: string | null,
-      phone?: string | null,
-      website?: string | null,
-      price_level?: number | null,
-      languages?: Array< string | null > | null,
-      is_minority_owned?: boolean | null,
-      is_howard_affiliated?: boolean | null,
-      verification_status?: VerificationStatus | null,
-      createdAt: string,
-      updatedAt: string,
-      owner?: string | null,
-    } | null,
-    reviews?:  {
-      __typename: "ModelReviewConnection",
-      nextToken?: string | null,
-    } | null,
-    reviewComments?:  {
-      __typename: "ModelReviewCommentConnection",
-      nextToken?: string | null,
-    } | null,
-    createdAt: string,
-    updatedAt: string,
-    profileBusinessProfileId?: string | null,
-    owner?: string | null,
-  } | null,
-};
-
-export type OnUpdateProfileSubscriptionVariables = {
-  filter?: ModelSubscriptionProfileFilterInput | null,
-  owner?: string | null,
-};
-
-export type OnUpdateProfileSubscription = {
-  onUpdateProfile?:  {
-    __typename: "Profile",
-    id: string,
-    full_name: string,
-    avatar_url?: string | null,
-    roles?:  {
-      __typename: "ModelUserRoleConnection",
-      nextToken?: string | null,
-    } | null,
-    businessProfile?:  {
-      __typename: "BusinessProfile",
-      id: string,
-      profileID: string,
-      business_name: string,
-      category: string,
-      description?: string | null,
-      address?: string | null,
-      phone?: string | null,
-      website?: string | null,
-      price_level?: number | null,
-      languages?: Array< string | null > | null,
-      is_minority_owned?: boolean | null,
-      is_howard_affiliated?: boolean | null,
-      verification_status?: VerificationStatus | null,
-      createdAt: string,
-      updatedAt: string,
-      owner?: string | null,
-    } | null,
-    reviews?:  {
-      __typename: "ModelReviewConnection",
-      nextToken?: string | null,
-    } | null,
-    reviewComments?:  {
-      __typename: "ModelReviewCommentConnection",
-      nextToken?: string | null,
-    } | null,
-    createdAt: string,
-    updatedAt: string,
-    profileBusinessProfileId?: string | null,
-    owner?: string | null,
-  } | null,
-};
-
-export type OnDeleteProfileSubscriptionVariables = {
-  filter?: ModelSubscriptionProfileFilterInput | null,
-  owner?: string | null,
-};
-
-export type OnDeleteProfileSubscription = {
-  onDeleteProfile?:  {
-    __typename: "Profile",
-    id: string,
-    full_name: string,
-    avatar_url?: string | null,
-    roles?:  {
-      __typename: "ModelUserRoleConnection",
-      nextToken?: string | null,
-    } | null,
-    businessProfile?:  {
-      __typename: "BusinessProfile",
-      id: string,
-      profileID: string,
-      business_name: string,
-      category: string,
-      description?: string | null,
-      address?: string | null,
-      phone?: string | null,
-      website?: string | null,
-      price_level?: number | null,
-      languages?: Array< string | null > | null,
-      is_minority_owned?: boolean | null,
-      is_howard_affiliated?: boolean | null,
-      verification_status?: VerificationStatus | null,
-      createdAt: string,
-      updatedAt: string,
-      owner?: string | null,
-    } | null,
-    reviews?:  {
-      __typename: "ModelReviewConnection",
-      nextToken?: string | null,
-    } | null,
-    reviewComments?:  {
-      __typename: "ModelReviewCommentConnection",
-      nextToken?: string | null,
-    } | null,
-    createdAt: string,
-    updatedAt: string,
-    profileBusinessProfileId?: string | null,
-    owner?: string | null,
-  } | null,
-};
-
 export type OnCreateUserRoleSubscriptionVariables = {
   filter?: ModelSubscriptionUserRoleFilterInput | null,
   owner?: string | null,
@@ -2057,6 +1910,153 @@ export type OnDeleteBusinessProfileSubscription = {
     } | null,
     createdAt: string,
     updatedAt: string,
+    owner?: string | null,
+  } | null,
+};
+
+export type OnCreateProfileSubscriptionVariables = {
+  filter?: ModelSubscriptionProfileFilterInput | null,
+  owner?: string | null,
+};
+
+export type OnCreateProfileSubscription = {
+  onCreateProfile?:  {
+    __typename: "Profile",
+    id: string,
+    full_name: string,
+    avatar_url?: string | null,
+    roles?:  {
+      __typename: "ModelUserRoleConnection",
+      nextToken?: string | null,
+    } | null,
+    businessProfile?:  {
+      __typename: "BusinessProfile",
+      id: string,
+      profileID: string,
+      business_name: string,
+      category: string,
+      description?: string | null,
+      address?: string | null,
+      phone?: string | null,
+      website?: string | null,
+      price_level?: number | null,
+      languages?: Array< string | null > | null,
+      is_minority_owned?: boolean | null,
+      is_howard_affiliated?: boolean | null,
+      verification_status?: VerificationStatus | null,
+      createdAt: string,
+      updatedAt: string,
+      owner?: string | null,
+    } | null,
+    reviews?:  {
+      __typename: "ModelReviewConnection",
+      nextToken?: string | null,
+    } | null,
+    reviewComments?:  {
+      __typename: "ModelReviewCommentConnection",
+      nextToken?: string | null,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+    profileBusinessProfileId?: string | null,
+    owner?: string | null,
+  } | null,
+};
+
+export type OnUpdateProfileSubscriptionVariables = {
+  filter?: ModelSubscriptionProfileFilterInput | null,
+  owner?: string | null,
+};
+
+export type OnUpdateProfileSubscription = {
+  onUpdateProfile?:  {
+    __typename: "Profile",
+    id: string,
+    full_name: string,
+    avatar_url?: string | null,
+    roles?:  {
+      __typename: "ModelUserRoleConnection",
+      nextToken?: string | null,
+    } | null,
+    businessProfile?:  {
+      __typename: "BusinessProfile",
+      id: string,
+      profileID: string,
+      business_name: string,
+      category: string,
+      description?: string | null,
+      address?: string | null,
+      phone?: string | null,
+      website?: string | null,
+      price_level?: number | null,
+      languages?: Array< string | null > | null,
+      is_minority_owned?: boolean | null,
+      is_howard_affiliated?: boolean | null,
+      verification_status?: VerificationStatus | null,
+      createdAt: string,
+      updatedAt: string,
+      owner?: string | null,
+    } | null,
+    reviews?:  {
+      __typename: "ModelReviewConnection",
+      nextToken?: string | null,
+    } | null,
+    reviewComments?:  {
+      __typename: "ModelReviewCommentConnection",
+      nextToken?: string | null,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+    profileBusinessProfileId?: string | null,
+    owner?: string | null,
+  } | null,
+};
+
+export type OnDeleteProfileSubscriptionVariables = {
+  filter?: ModelSubscriptionProfileFilterInput | null,
+  owner?: string | null,
+};
+
+export type OnDeleteProfileSubscription = {
+  onDeleteProfile?:  {
+    __typename: "Profile",
+    id: string,
+    full_name: string,
+    avatar_url?: string | null,
+    roles?:  {
+      __typename: "ModelUserRoleConnection",
+      nextToken?: string | null,
+    } | null,
+    businessProfile?:  {
+      __typename: "BusinessProfile",
+      id: string,
+      profileID: string,
+      business_name: string,
+      category: string,
+      description?: string | null,
+      address?: string | null,
+      phone?: string | null,
+      website?: string | null,
+      price_level?: number | null,
+      languages?: Array< string | null > | null,
+      is_minority_owned?: boolean | null,
+      is_howard_affiliated?: boolean | null,
+      verification_status?: VerificationStatus | null,
+      createdAt: string,
+      updatedAt: string,
+      owner?: string | null,
+    } | null,
+    reviews?:  {
+      __typename: "ModelReviewConnection",
+      nextToken?: string | null,
+    } | null,
+    reviewComments?:  {
+      __typename: "ModelReviewCommentConnection",
+      nextToken?: string | null,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+    profileBusinessProfileId?: string | null,
     owner?: string | null,
   } | null,
 };
