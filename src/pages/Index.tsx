@@ -1,11 +1,36 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Heart, Award, TrendingUp } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Search, Heart, Award, TrendingUp, BarChart2 } from "lucide-react";
+import { aggregateImpactKPIs } from "@/lib/metrics";
+  // Impact metrics state
+  const [impactKPIs, setImpactKPIs] = useState(null as null | ReturnType<typeof aggregateImpactKPIs>);
+
+  useEffect(() => {
+    // Demo: aggregate from localStorage (replace with API in production)
+    const events = JSON.parse(localStorage.getItem('engagementEvents') || '[]');
+    // For demo, reviews and verified businesses are empty arrays
+    setImpactKPIs(
+      aggregateImpactKPIs(
+        events,
+        [], // reviews: [] (replace with real data)
+        []  // verifiedBusinessIds: [] (replace with real data)
+      )
+    );
+  }, []);
+import { Link, useNavigate } from "react-router-dom";
 import AuthButton from "@/components/AuthButton";
 import heroImage from "@/assets/hero-marketplace.jpg";
 
 const Index = () => {
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate(`/browse${searchQuery.trim() ? `?q=${encodeURIComponent(searchQuery.trim())}` : ""}`);
+  };
+
   return (
     <div className="min-h-screen">
       {/* Navigation */}
@@ -42,18 +67,20 @@ const Index = () => {
             Connect with verified minority-owned and Howard University-affiliated businesses in one trusted platform
           </p>
           
-          <div className="max-w-2xl mx-auto mb-8">
+          <form className="max-w-2xl mx-auto mb-8" onSubmit={handleSearch}>
             <div className="flex gap-2">
               <Input
                 placeholder="Search for businesses, categories, or locations..."
                 className="h-14 text-lg bg-white/95 backdrop-blur"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <Button size="lg" className="h-14 px-8 bg-accent hover:bg-accent/90 text-accent-foreground">
+              <Button type="submit" size="lg" className="h-14 px-8 bg-accent hover:bg-accent/90 text-accent-foreground">
                 <Search className="h-5 w-5 mr-2" />
                 Search
               </Button>
             </div>
-          </div>
+          </form>
 
           <Link to="/browse">
             <Button size="lg" variant="secondary" className="h-12 px-8">
@@ -75,6 +102,34 @@ const Index = () => {
               authentic discovery, trusted reviews, and special support for Howard University-affiliated 
               entrepreneurs.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Impact Metrics Dashboard */}
+      <section className="py-20 bg-white border-b">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 flex items-center justify-center gap-2">
+            <BarChart2 className="h-8 w-8 text-accent" />
+            Community Impact Metrics
+          </h2>
+          <div className="grid md:grid-cols-4 gap-8 text-center">
+            <div>
+              <div className="text-4xl font-bold text-primary">{impactKPIs?.totalProfileViews ?? 0}</div>
+              <div className="text-muted-foreground mt-2">Profile Views</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-primary">{impactKPIs?.totalWebsiteClicks ?? 0}</div>
+              <div className="text-muted-foreground mt-2">Website Clicks</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-primary">{impactKPIs?.totalReviews ?? 0}</div>
+              <div className="text-muted-foreground mt-2">Reviews Submitted</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-primary">{impactKPIs?.uniqueUsers ?? 0}</div>
+              <div className="text-muted-foreground mt-2">Unique Users Engaged</div>
+            </div>
           </div>
         </div>
       </section>
@@ -132,9 +187,11 @@ const Index = () => {
                 Explore Businesses
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="h-12 px-8 bg-white/10 hover:bg-white/20 text-white border-white">
-              List Your Business
-            </Button>
+            <Link to="/dashboard/add-business">
+              <Button size="lg" variant="outline" className="h-12 px-8 bg-white/10 hover:bg-white/20 text-white border-white">
+                List Your Business
+              </Button>
+            </Link>
           </div>
         </div>
       </section>

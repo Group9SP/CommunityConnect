@@ -76,11 +76,6 @@ export default function Auth() {
     setLoading(true);
     try {
       await signIn({ username: loginEmail, password: loginPassword });
-      // After successful sign-in, check if profile/role exists, if not, create them
-      const client = generateClient();
-      // Try to fetch profile (pseudo-code, adjust to your schema)
-      // If not found, create profile and role
-      // ...
       setLoading(false);
       toast({
         title: "Welcome back!",
@@ -150,13 +145,30 @@ export default function Auth() {
     setConfirmLoading(true);
     try {
       await confirmSignUp({ username: pendingSignup.email, confirmationCode });
+
+      // Sign in so we have an authenticated session for the GraphQL mutations
+      await signIn({ username: pendingSignup.email, password: pendingSignup.password });
+
+      // Create Profile and UserRole records in Amplify GraphQL (F1.6, F1.7)
+      const client = generateClient();
+      const profileResult: any = await client.graphql({
+        query: createProfile,
+        variables: { input: { full_name: pendingSignup.fullName } },
+      });
+      const profileId = profileResult.data.createProfile.id;
+      await client.graphql({
+        query: createUserRole,
+        variables: { input: { profileID: profileId, role: pendingSignup.role } },
+      });
+
       toast({
         title: "Account Verified!",
-        description: "Your account has been verified. You can now sign in.",
+        description: "Your account has been verified and you are now signed in.",
       });
       setShowConfirm(false);
       setPendingSignup(null);
       setConfirmationCode("");
+      navigate("/");
     } catch (error: any) {
       toast({
         title: "Verification Failed",
@@ -264,6 +276,7 @@ export default function Auth() {
                       "Login"
                     )}
                   </Button>
+                  <Button type="button" variant="link" className="w-full mt-2" onClick={() => navigate("/password-reset")}>Forgot password?</Button>
                 </form>
               </TabsContent>
 

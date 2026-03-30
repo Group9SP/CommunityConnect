@@ -94,23 +94,36 @@ async function fetchBusinesses({
         });
         const items = response.data.listBusinessProfiles.items;
 
-        // Map to your Business type as needed
-        const businesses: Business[] = items.map((item: any) => ({
-            id: item.id,
-            name: item.business_name,
-            category: item.category,
-            image: '', // Map image if you have it
-            rating: 0, // Map rating if you have it
-            reviewCount: 0, // Map reviewCount if you have it
-            priceLevel: item.price_level ?? 1,
-            languages: item.languages ?? [],
-            location: item.address ?? '',
-            isVerified: item.verification_status === "verified",
-            isHowardAffiliated: item.is_howard_affiliated ?? false,
-            isMinorityOwned: item.is_minority_owned ?? false,
-            description: item.description ?? '',
-            createdAt: item.createdAt ?? new Date().toISOString(),
-        }));
+        // Map to Business type
+        const businesses: Business[] = items.map((item: any) => {
+            // Calculate rating and reviewCount if reviews are available
+            let rating = 0;
+            let reviewCount = 0;
+            if (item.reviews && item.reviews.items && item.reviews.items.length > 0) {
+                const validReviews = item.reviews.items.filter((r: any) => r && typeof r.rating === 'number');
+                reviewCount = validReviews.length;
+                if (reviewCount > 0) {
+                    rating = validReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviewCount;
+                }
+            }
+            return {
+                id: item.id,
+                name: item.business_name,
+                category: item.category,
+                image: '', // TODO: Map image if available in schema
+                rating,
+                reviewCount,
+                priceLevel: item.price_level ?? 1,
+                languages: item.languages?.filter(Boolean) ?? [],
+                location: item.address ?? '',
+                isVerified: item.verification_status === "verified",
+                isHowardAffiliated: item.is_howard_affiliated ?? false,
+                isMinorityOwned: item.is_minority_owned ?? false,
+                description: item.description ?? '',
+                createdAt: item.createdAt ?? new Date().toISOString(),
+                verificationStatus: item.verification_status,
+            };
+        });
 
         return { businesses, totalCount: businesses.length };
     } catch (error) {

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { generateClient } from "aws-amplify/api";
 import { getCurrentUser } from "aws-amplify/auth";
 import { ModerationStatus } from "@/API";
+import { trackEngagementEvent } from "@/lib/metrics";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +40,8 @@ const BusinessDetail = () => {
   const [comment, setComment] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [lastReviewTime, setLastReviewTime] = useState<number | null>(null);
+  const REVIEW_COOLDOWN_MS = 60 * 1000; // 1 minute cooldown
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   // Reviews state
@@ -67,6 +70,21 @@ const BusinessDetail = () => {
     };
     fetchUser();
   }, []);
+
+  // Track profile view event on mount
+  useEffect(() => {
+    if (!id) return;
+    // Delay to ensure userId is fetched if available
+    const timer = setTimeout(() => {
+      trackEngagementEvent({
+        businessID: id,
+        userID: currentUserId || undefined,
+        type: 'profile_view',
+      });
+    }, 500);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, currentUserId]);
 
   // fetchReviews defined outside useEffect so it can be called after submit
   // Uses userPool when logged in (so nested user { full_name } resolves correctly)
@@ -160,6 +178,13 @@ const BusinessDetail = () => {
     e.preventDefault();
     setSubmitError("");
 
+    // Cooldown check
+    const now = Date.now();
+    if (lastReviewTime && now - lastReviewTime < REVIEW_COOLDOWN_MS) {
+      setSubmitError(`Please wait ${Math.ceil((REVIEW_COOLDOWN_MS - (now - lastReviewTime)) / 1000)} seconds before submitting another review.`);
+      return;
+    }
+
     if (!currentUserId) {
       setSubmitError("You must be logged in to leave a review.");
       return;
@@ -189,6 +214,7 @@ const BusinessDetail = () => {
       setSubmitted(true);
       setComment("");
       setRating(5);
+      setLastReviewTime(now);
       await fetchReviews();
     } catch (err: any) {
       setSubmitError(err.errors?.[0]?.message || "Error submitting review");
@@ -288,8 +314,14 @@ const BusinessDetail = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col gap-4 justify-center">
           <div className="flex gap-2 mb-2">
-            {business.isVerified && (
+            {business.verificationStatus === "verified" && (
               <Badge className="bg-[hsl(var(--verified-badge))] text-white">✓ Verified Minority-Owned</Badge>
+            )}
+            {business.verificationStatus === "pending" && (
+              <Badge className="bg-yellow-500 text-white">Verification Pending</Badge>
+            )}
+            {business.verificationStatus === "rejected" && (
+              <Badge className="bg-destructive text-white">Verification Rejected</Badge>
             )}
             {business.isHowardAffiliated && (
               <Badge className="bg-accent text-accent-foreground">Howard Affiliated</Badge>
@@ -323,13 +355,20 @@ const BusinessDetail = () => {
           </div>
           <div className="flex items-center gap-3 text-sm text-muted-foreground mb-2">
             <MapPin className="h-4 w-4" /> {business.location}
-            <Phone className="h-4 w-4 ml-4" /> {business.phone}
+            <Phone className="h-4 w-4 ml-4" /> {currentUserId ? business.phone : "(hidden)"}
             <Globe className="h-4 w-4 ml-4" />
             <a
               href={`https://${business.website}`}
               className="text-primary hover:underline"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => {
+                trackEngagementEvent({
+                  businessID: id || '',
+                  userID: currentUserId || undefined,
+                  type: 'website_click',
+                });
+              }}
             >
               {business.website}
             </a>
@@ -409,7 +448,17 @@ const BusinessDetail = () => {
                   <div className="space-y-4">
                     {reviews.map((review, index) => {
                       const isCurrentUser = review.userID === currentUserId;
-                      const userName = review.user?.full_name || "Community Member";
+                      // Mask name for public users: show initials only
+                      let userName = "Community Member";
+                      if (review.user?.full_name) {
+                        if (currentUserId) {
+                          userName = review.user.full_name;
+                        } else {
+                          // Mask: show first initial + last initial if available
+                          const parts = review.user.full_name.split(" ");
+                          userName = parts.length > 1 ? `${parts[0][0]}. ${parts[1][0]}.` : `${parts[0][0]}.`;
+                        }
+                      }
                       return (
                         <div key={review.id || index} className="relative" id={`review-${review.id}`}>
                           <ReviewCard
@@ -580,7 +629,7 @@ const BusinessDetail = () => {
                   <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
                     <p className="font-medium">Phone</p>
-                    <p className="text-sm text-muted-foreground">{business.phone}</p>
+                    <p className="text-sm text-muted-foreground">{currentUserId ? business.phone : "(hidden)"}</p>
                   </div>
                 </div>
                 <Separator />
