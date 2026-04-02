@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, User as UserIcon, ClipboardList } from "lucide-react";
+import { LogOut, User as UserIcon, ClipboardList, Building2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +20,7 @@ export default function AuthButton() {
   const { session } = useSession();
   const user = session?.user ?? null;
   const { hasRole: isAdmin } = useHasRole(user?.id, "admin");
+  const { hasRole: isBusinessOwner } = useHasRole(user?.id, "business_owner");
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -64,6 +65,12 @@ export default function AuthButton() {
           <DropdownMenuItem onClick={() => navigate("/admin/review")}>
             <ClipboardList className="mr-2 h-4 w-4" />
             Review queue
+          </DropdownMenuItem>
+        )}
+        {isBusinessOwner && (
+          <DropdownMenuItem onClick={() => navigate("/owner/business")}>
+            <Building2 className="mr-2 h-4 w-4" />
+            My business
           </DropdownMenuItem>
         )}
         <DropdownMenuItem onClick={handleLogout}>

@@ -9,6 +9,8 @@ import BusinessDetail from "./pages/BusinessDetail";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import AddBusiness from "./pages/AddBusiness";
+import ManageBusiness from "./pages/ManageBusiness";
+import MyBusinessHub from "./pages/MyBusinessHub";
 // Admin-only page that surfaces the verification review queue.
 import AdminReviewQueue from "./pages/AdminReviewQueue";
 import { RequireBusinessOwner } from "./components/RequireBusinessOwner";
@@ -32,6 +34,22 @@ const App = () => (
             element={
               <RequireBusinessOwner>
                 <AddBusiness />
+              </RequireBusinessOwner>
+            }
+          />
+          <Route
+            path="/business/:id/manage"
+            element={
+              <RequireBusinessOwner>
+                <ManageBusiness />
+              </RequireBusinessOwner>
+            }
+          />
+          <Route
+            path="/owner/business"
+            element={
+              <RequireBusinessOwner>
+                <MyBusinessHub />
               </RequireBusinessOwner>
             }
           />

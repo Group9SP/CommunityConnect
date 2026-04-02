@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchPublicBusinessListings } from "@/integrations/supabase/businessProfiles";
 import { Link, useSearchParams } from "react-router-dom";
 import { BusinessCard } from "@/components/BusinessCard";
 import { FilterSidebar } from "@/components/FilterSidebar";
@@ -31,8 +33,8 @@ interface Business {
 
 // ---------------------------------------------------------------------------
 
-// Static data (future: replace with Supabase query that accepts filter params)
-const ALL_BUSINESSES: Business[] = [
+// Sample rows for demos; live Supabase listings are merged in the Browse component.
+const SAMPLE_BUSINESSES: Business[] = [
   {
     id: "1",
     name: "Elevation Coffee House",
@@ -127,6 +129,30 @@ function applyFilters(
 
 // Component
 const Browse = () => {
+  const { data: supabaseRows } = useQuery({
+    queryKey: ["public-businesses"],
+    queryFn: fetchPublicBusinessListings,
+    staleTime: 30_000,
+  });
+
+  const allBusinesses = useMemo(() => {
+    const fromDb: Business[] = (supabaseRows ?? []).map((row) => ({
+      id: row.id,
+      name: row.business_name,
+      category: row.category,
+      image: row.logo_url ?? coffeeImage,
+      rating: 0,
+      reviewCount: 0,
+      priceLevel: row.price_level,
+      languages: row.languages ?? [],
+      location: row.address ?? "—",
+      isVerified: row.verification_status === "verified",
+      isHowardAffiliated: row.is_howard_affiliated,
+      description: row.description ?? "",
+    }));
+    return [...fromDb, ...SAMPLE_BUSINESSES];
+  }, [supabaseRows]);
+
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Initialise filter state from URL params so filters survive page refresh
@@ -162,8 +188,8 @@ const Browse = () => {
   }, []);
 
   const filteredBusinesses = useMemo(
-    () => applyFilters(ALL_BUSINESSES, filters, debouncedQuery),
-    [filters, debouncedQuery]
+    () => applyFilters(allBusinesses, filters, debouncedQuery),
+    [allBusinesses, filters, debouncedQuery]
   );
 
   const hasActiveFilters =
