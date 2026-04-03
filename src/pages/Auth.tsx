@@ -35,8 +35,11 @@ export default function Auth() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<"customer" | "business_owner">("customer");
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [pendingSignup, setPendingSignup] = useState<{ email: string; password: string; fullName: string; role: AppRole } | null>(null);
+  const [showConfirm, setShowConfirm] = useState(() => !!sessionStorage.getItem("pendingSignup"));
+  const [pendingSignup, setPendingSignup] = useState<{ email: string; password: string; fullName: string; role: AppRole } | null>(() => {
+    const stored = sessionStorage.getItem("pendingSignup");
+    return stored ? JSON.parse(stored) : null;
+  });
   const [confirmationCode, setConfirmationCode] = useState("");
   const [confirmLoading, setConfirmLoading] = useState(false);
   
@@ -124,7 +127,9 @@ export default function Auth() {
       });
       setLoading(false);
       setShowConfirm(true);
-      setPendingSignup({ email: signupEmail, password: signupPassword, fullName, role: role as AppRole });
+      const signup = { email: signupEmail, password: signupPassword, fullName, role: role as AppRole };
+      setPendingSignup(signup);
+      sessionStorage.setItem("pendingSignup", JSON.stringify(signup));
       toast({
         title: "Verify Your Email",
         description: "A confirmation link has been sent to your email. Please verify your account before signing in.",
@@ -167,6 +172,7 @@ export default function Auth() {
       });
       setShowConfirm(false);
       setPendingSignup(null);
+      sessionStorage.removeItem("pendingSignup");
       setConfirmationCode("");
       navigate("/");
     } catch (error: any) {
@@ -231,7 +237,7 @@ export default function Auth() {
               <Button type="button" variant="outline" className="w-full" onClick={handleResendCode}>
                 Resend Code
               </Button>
-              <Button className="w-full" variant="ghost" onClick={() => { setShowConfirm(false); setConfirmationCode(""); }}>
+              <Button className="w-full" variant="ghost" onClick={() => { setShowConfirm(false); setConfirmationCode(""); sessionStorage.removeItem("pendingSignup"); setPendingSignup(null); }}>
                 Back to Login
               </Button>
             </form>

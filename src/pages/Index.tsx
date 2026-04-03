@@ -3,13 +3,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Heart, Award, TrendingUp, BarChart2 } from "lucide-react";
 import { aggregateImpactKPIs } from "@/lib/metrics";
+import { Link, useNavigate } from "react-router-dom";
+import AuthButton from "@/components/AuthButton";
+import heroImage from "@/assets/hero-marketplace.jpg";
+
+const Index = () => {
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+
   // Impact metrics state
   const [impactKPIs, setImpactKPIs] = useState(null as null | ReturnType<typeof aggregateImpactKPIs>);
 
   useEffect(() => {
     // Demo: aggregate from localStorage (replace with API in production)
     const events = JSON.parse(localStorage.getItem('engagementEvents') || '[]');
-    // For demo, reviews and verified businesses are empty arrays
     setImpactKPIs(
       aggregateImpactKPIs(
         events,
@@ -18,13 +25,6 @@ import { aggregateImpactKPIs } from "@/lib/metrics";
       )
     );
   }, []);
-import { Link, useNavigate } from "react-router-dom";
-import AuthButton from "@/components/AuthButton";
-import heroImage from "@/assets/hero-marketplace.jpg";
-
-const Index = () => {
-  const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
