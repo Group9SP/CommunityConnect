@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordToggleField } from "@/components/PasswordToggleField";
 
 export default function PasswordReset() {
   const [email, setEmail] = useState("");
@@ -68,12 +69,15 @@ export default function PasswordReset() {
               onChange={e => setCode(e.target.value)}
               required
             />
-            <Input
-              type="password"
-              placeholder="New password"
+            <PasswordToggleField
+              id="password-reset-new"
+              label="New password"
               value={newPassword}
-              onChange={e => setNewPassword(e.target.value)}
-              required
+              onChange={setNewPassword}
+              show={showNewPassword}
+              onToggleShow={() => setShowNewPassword((s) => !s)}
+              autoComplete="new-password"
+              placeholder="New password"
             />
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Resetting..." : "Reset Password"}
