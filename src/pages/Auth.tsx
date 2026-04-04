@@ -22,7 +22,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { z } from "zod";
-import type { AppRole } from '@/API';
 
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -141,8 +140,8 @@ export default function Auth() {
         description: error instanceof Error ? error.message : "Something went wrong.",
         variant: "destructive",
       });
+      return;
     }
-  };
 
     setLoading(false);
 
@@ -165,38 +164,10 @@ export default function Auth() {
 
     if (result.ok) {
       toast({
-        title: "Account Verified!",
-        description: "Your account has been verified and you are now signed in.",
+        title: "Account Created!",
+        description: "Welcome! Your account has been created successfully.",
       });
-      setShowConfirm(false);
-      setPendingSignup(null);
-      sessionStorage.removeItem("pendingSignup");
-      setConfirmationCode("");
       navigate("/");
-    } catch (error: any) {
-      toast({
-        title: "Verification Failed",
-        description: error.message || String(error),
-        variant: "destructive",
-      });
-    }
-    setConfirmLoading(false);
-  };
-
-  const handleResendCode = async () => {
-    if (!pendingSignup) return;
-    try {
-      await resendSignUpCode({ username: pendingSignup.email });
-      toast({
-        title: "Code Resent",
-        description: "A new verification code has been sent to your email.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Resend Failed",
-        description: error.message || String(error),
-        variant: "destructive",
-      });
     }
   };
 
@@ -210,34 +181,6 @@ export default function Auth() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {showConfirm ? (
-            <form className="space-y-4" onSubmit={handleConfirm}>
-              <div className="text-center space-y-2">
-                <p className="text-lg font-semibold">Verify your email</p>
-                <p className="text-muted-foreground">A confirmation code has been sent to your email. Enter it below to verify your account.</p>
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="confirmation-code" className="block text-sm font-medium">Verification Code</label>
-                <input
-                  id="confirmation-code"
-                  type="text"
-                  value={confirmationCode}
-                  onChange={e => setConfirmationCode(e.target.value)}
-                  className="w-full border rounded px-3 py-2"
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={confirmLoading}>
-                {confirmLoading ? "Verifying..." : "Verify Account"}
-              </Button>
-              <Button type="button" variant="outline" className="w-full" onClick={handleResendCode}>
-                Resend Code
-              </Button>
-              <Button className="w-full" variant="ghost" onClick={() => { setShowConfirm(false); setConfirmationCode(""); sessionStorage.removeItem("pendingSignup"); setPendingSignup(null); }}>
-                Back to Login
-              </Button>
-            </form>
-          ) : (
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="login">Login</TabsTrigger>
@@ -347,7 +290,6 @@ export default function Auth() {
                 </form>
               </TabsContent>
             </Tabs>
-          )}
         </CardContent>
       </Card>
     </div>
