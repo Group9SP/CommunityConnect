@@ -12,10 +12,10 @@
     "mfaTypes": [
       "SMS Text Message"
     ],
-    "smsAuthenticationMessage": "Welcome to Minority X-Change - Your Verification Code your verification code is {####}",
-    "smsVerificationMessage": "Welcome to Minority X-Change - Your Verification Code your verification code is {####}",
-    "emailVerificationSubject": "Welcome to Minority X-Change - Your Verification Code",
-    "emailVerificationMessage": "Thank you for joining our community! Your verification code is {####}",
+    "smsAuthenticationMessage": "Welcome to Community Connect. Your verification code is {####}",
+    "smsVerificationMessage": "Welcome to Community Connect. Your verification code is {####}",
+    "emailVerificationSubject": "Welcome to Community Connect",
+    "emailVerificationMessage": "Thank you for joining Community Connect! Your verification code is {####}",
     "defaultPasswordPolicy": false,
     "passwordPolicyMinLength": 8,
     "passwordPolicyCharacters": [],
