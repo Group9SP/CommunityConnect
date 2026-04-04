@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, User as UserIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { LogOut, User as UserIcon, ClipboardList, Building2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,53 +10,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { fetchAuthSession, signOut, getCurrentUser } from "aws-amplify/auth";
+import { signOutUser } from "@/integrations/amplify/authSession";
+import { useSession } from "@/features/auth/hooks/useSession";
+import { useHasRole } from "@/features/auth/hooks/useUserRoles";
 
 export default function AuthButton() {
-  const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  useEffect(() => {
-    // Get current user from Amplify Auth
-    getCurrentUser()
-      .then(setUser)
-      .catch(() => setUser(null));
-
-    // Listen for auth changes (Amplify Hub)
-    const listener = (data: any) => {
-      switch (data.payload.event) {
-        case 'signedIn':
-          getCurrentUser().then(setUser);
-          break;
-        case 'signedOut':
-          setUser(null);
-          break;
-        default:
-          break;
-      }
-    };
-    import('aws-amplify/utils').then(({ Hub }) => {
-      Hub.listen('auth', listener);
-    });
-    return () => {
-      // No explicit unsubscribe needed for Hub.listen
-    };
-  }, []);
+  const { session } = useSession();
+  const user = session?.user ?? null;
+  const { hasRole: isAdmin } = useHasRole(user?.id, "admin");
+  const { hasRole: isBusinessOwner } = useHasRole(user?.id, "business_owner");
 
   const handleLogout = async () => {
     try {
-      await signOut();
-      toast({
-        title: "Logged Out",
-        description: "You have been successfully logged out.",
-      });
-      setUser(null);
-      navigate("/");
-    } catch (error: any) {
+      await signOutUser();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Sign out failed.";
       toast({
         title: "Logout Failed",
-        description: error.message || String(error),
+        description: message,
         variant: "destructive",
       });
     }
@@ -83,6 +55,18 @@ export default function AuthButton() {
           {user.signInDetails?.loginId || user.username}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        {isAdmin && (
+          <DropdownMenuItem onClick={() => navigate("/admin/review")}>
+            <ClipboardList className="mr-2 h-4 w-4" />
+            Review queue
+          </DropdownMenuItem>
+        )}
+        {isBusinessOwner && (
+          <DropdownMenuItem onClick={() => navigate("/owner/business")}>
+            <Building2 className="mr-2 h-4 w-4" />
+            My business
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem onClick={handleLogout}>
           <LogOut className="mr-2 h-4 w-4" />
           Logout

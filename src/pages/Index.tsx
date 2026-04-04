@@ -187,8 +187,12 @@ const Index = () => {
                 Explore Businesses
               </Button>
             </Link>
-            <Link to="/dashboard/add-business">
-              <Button size="lg" variant="outline" className="h-12 px-8 bg-white/10 hover:bg-white/20 text-white border-white">
+            <Link to="/business/add">
+              <Button
+                size="lg"
+                variant="outline"
+                className="h-12 px-8 bg-white/10 hover:bg-white/20 text-white border-white"
+              >
                 List Your Business
               </Button>
             </Link>

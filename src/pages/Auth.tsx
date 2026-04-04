@@ -10,9 +10,9 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { signIn, signUp, getCurrentUser, confirmSignUp, resendSignUpCode } from "aws-amplify/auth";
-import { generateClient } from "aws-amplify/api";
-import { createProfile, createUserRole } from "@/graphql/mutations";
+import { signIn } from "aws-amplify/auth";
+import { getAppSession, signUpThenEnsureProfileAndRole } from "@/integrations/amplify/authSession";
+import { insertProfile, insertUserRole } from "@/integrations/amplify/userDirectory";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,32 +35,25 @@ export default function Auth() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<"customer" | "business_owner">("customer");
-  const [showConfirm, setShowConfirm] = useState(() => !!sessionStorage.getItem("pendingSignup"));
-  const [pendingSignup, setPendingSignup] = useState<{ email: string; password: string; fullName: string; role: AppRole } | null>(() => {
-    const stored = sessionStorage.getItem("pendingSignup");
-    return stored ? JSON.parse(stored) : null;
-  });
-  const [confirmationCode, setConfirmationCode] = useState("");
-  const [confirmLoading, setConfirmLoading] = useState(false);
-  
-  // Login form
+
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
-  
-  // Signup form
+
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [fullName, setFullName] = useState("");
 
   useEffect(() => {
-    // Check if user is already logged in (Amplify)
-    getCurrentUser()
-      .then(() => navigate("/"))
-      .catch(() => {});
+    getAppSession().then((session) => {
+      if (session) {
+        navigate("/");
+      }
+    });
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
       authSchema.pick({ email: true, password: true }).parse({
         email: loginEmail,
@@ -77,19 +70,31 @@ export default function Auth() {
       }
     }
     setLoading(true);
+
     try {
-      await signIn({ username: loginEmail, password: loginPassword });
+      const out = await signIn({ username: loginEmail, password: loginPassword });
       setLoading(false);
+
+      if (!out.isSignedIn) {
+        toast({
+          title: "Login Failed",
+          description: "Additional sign-in steps may be required for this account.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       toast({
         title: "Welcome back!",
         description: "You have successfully logged in.",
       });
       navigate("/");
-    } catch (error: any) {
+    } catch (error: unknown) {
       setLoading(false);
+      const message = error instanceof Error ? error.message : "Login failed.";
       toast({
         title: "Login Failed",
-        description: error.message || String(error),
+        description: message,
         variant: "destructive",
       });
     }
@@ -114,58 +119,51 @@ export default function Auth() {
       }
     }
     setLoading(true);
+
+    let result: Awaited<ReturnType<typeof signUpThenEnsureProfileAndRole>>;
     try {
-      await signUp({
-        username: signupEmail,
-        password: signupPassword,
-        options: {
-          userAttributes: {
-            email: signupEmail,
-            name: fullName,
-          },
+      result = await signUpThenEnsureProfileAndRole(
+        {
+          email: signupEmail,
+          password: signupPassword,
+          fullName,
+          role,
         },
-      });
-      setLoading(false);
-      setShowConfirm(true);
-      const signup = { email: signupEmail, password: signupPassword, fullName, role: role as AppRole };
-      setPendingSignup(signup);
-      sessionStorage.setItem("pendingSignup", JSON.stringify(signup));
-      toast({
-        title: "Verify Your Email",
-        description: "A confirmation link has been sent to your email. Please verify your account before signing in.",
-      });
-    } catch (error: any) {
+        async (userId) => {
+          await insertProfile(userId, fullName);
+          await insertUserRole(userId, role);
+        }
+      );
+    } catch (error: unknown) {
       setLoading(false);
       toast({
         title: "Signup Failed",
-        description: error.message || String(error),
+        description: error instanceof Error ? error.message : "Something went wrong.",
         variant: "destructive",
       });
     }
   };
 
-  const handleConfirm = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!pendingSignup) return;
-    setConfirmLoading(true);
-    try {
-      await confirmSignUp({ username: pendingSignup.email, confirmationCode });
+    setLoading(false);
 
-      // Sign in so we have an authenticated session for the GraphQL mutations
-      await signIn({ username: pendingSignup.email, password: pendingSignup.password });
-
-      // Create Profile and UserRole records in Amplify GraphQL (F1.6, F1.7)
-      const client = generateClient();
-      const profileResult: any = await client.graphql({
-        query: createProfile,
-        variables: { input: { full_name: pendingSignup.fullName } },
+    if ("needsEmailConfirmation" in result && result.needsEmailConfirmation) {
+      toast({
+        title: "Confirm your email",
+        description: "We sent a confirmation link. After you confirm, sign in to finish account setup.",
       });
-      const profileId = profileResult.data.createProfile.id;
-      await client.graphql({
-        query: createUserRole,
-        variables: { input: { profileID: profileId, role: pendingSignup.role } },
-      });
+      return;
+    }
 
+    if ("error" in result && result.error) {
+      toast({
+        title: "Signup Failed",
+        description: result.error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (result.ok) {
       toast({
         title: "Account Verified!",
         description: "Your account has been verified and you are now signed in.",
@@ -206,9 +204,7 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
-            Community Marketplace
-          </CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Community Marketplace</CardTitle>
           <CardDescription className="text-center">
             Supporting minority-owned and Howard-affiliated businesses
           </CardDescription>

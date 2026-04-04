@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchPublicBusinessListings } from "@/integrations/amplify/businessProfiles";
 import { Link, useSearchParams } from "react-router-dom";
 import { BusinessCard } from "@/components/BusinessCard";
 import { FilterSidebar } from "@/components/FilterSidebar";
@@ -22,14 +24,83 @@ import {
 import { useBusinessSearch } from "@/hooks/useBusinessSearch";
 
 // ---------------------------------------------------------------------------
-// Constants
+
+// Sample rows for demos; live API listings are merged in the Browse component.
+const SAMPLE_BUSINESSES: Business[] = [
+  {
+    id: "1",
+    name: "Elevation Coffee House",
+    category: "Coffee & Tea",
+    image: coffeeImage,
+    rating: 4.8,
+    reviewCount: 124,
+    priceLevel: 2,
+    languages: ["EN", "ES"],
+    location: "Washington, DC",
+    isVerified: true,
+    isHowardAffiliated: true,
+    description:
+      "Premium coffee roasted daily with a mission to uplift the community. Howard alumni-owned since 2020.",
+  },
+  {
+    id: "2",
+    name: "Soul & Flavor Bistro",
+    category: "Restaurant",
+    image: restaurantImage,
+    rating: 4.9,
+    reviewCount: 286,
+    priceLevel: 3,
+    languages: ["EN"],
+    location: "Washington, DC",
+    isVerified: true,
+    isHowardAffiliated: false,
+    description:
+      "Contemporary soul food restaurant celebrating Black culinary excellence with locally-sourced ingredients.",
+  },
+  {
+    id: "3",
+    name: "Heritage Boutique",
+    category: "Fashion & Retail",
+    image: boutiqueImage,
+    rating: 4.7,
+    reviewCount: 92,
+    priceLevel: 3,
+    languages: ["EN", "FR"],
+    location: "Washington, DC",
+    isVerified: true,
+    isHowardAffiliated: true,
+    description:
+      "Curated fashion celebrating African diaspora designers. Founded by Howard University fashion alumna.",
+  },
+  {
+    id: "4",
+    name: "Crown & Glory Salon",
+    category: "Beauty & Wellness",
+    image: salonImage,
+    rating: 5.0,
+    reviewCount: 156,
+    priceLevel: 2,
+    languages: ["EN"],
+    location: "Washington, DC",
+    isVerified: true,
+    isHowardAffiliated: true,
+    description:
+      "Full-service salon specializing in natural hair care and protective styling. Howard student-owned.",
+  },
+];
+
 // ---------------------------------------------------------------------------
 
 const PAGE_SIZE = 6;
 
-// ---------------------------------------------------------------------------
-// Helper: build filter state from URL search params
-// ---------------------------------------------------------------------------
+  return businesses.filter((b) => {
+    // Only hide unverified listings when the user enables the "Verified Minority-Owned" filter.
+    if (filters.verified && !b.isVerified) return false;
+    if (filters.howardAffiliated && !b.isHowardAffiliated) return false;
+    if (filters.categories.length > 0 && !filters.categories.includes(b.category))
+      return false;
+    if (b.priceLevel > filters.maxPriceLevel) return false;
+    if (filters.minRating > 0 && b.rating < filters.minRating) return false;
 
 function filtersFromParams(params: URLSearchParams): BusinessFilters {
   const sortParam = params.get("sort");
@@ -54,6 +125,30 @@ function filtersFromParams(params: URLSearchParams): BusinessFilters {
 
 // Component
 const Browse = () => {
+  const { data: listingRows } = useQuery({
+    queryKey: ["public-businesses"],
+    queryFn: fetchPublicBusinessListings,
+    staleTime: 30_000,
+  });
+
+  const allBusinesses = useMemo(() => {
+    const fromDb: Business[] = (listingRows ?? []).map((row) => ({
+      id: row.id,
+      name: row.business_name,
+      category: row.category,
+      image: row.logo_url ?? coffeeImage,
+      rating: 0,
+      reviewCount: 0,
+      priceLevel: row.price_level,
+      languages: row.languages ?? [],
+      location: row.address ?? "—",
+      isVerified: row.verification_status === "verified",
+      isHowardAffiliated: row.is_howard_affiliated,
+      description: row.description ?? "",
+    }));
+    return [...fromDb, ...SAMPLE_BUSINESSES];
+  }, [listingRows]);
+
   const [searchParams, setSearchParams] = useSearchParams();
 
   // ── Filter state (F3.2.7 — init from URL) ──────────────────────────────
@@ -103,10 +198,9 @@ const Browse = () => {
   }, []);
   /*
   const filteredBusinesses = useMemo(
-      () => applyFilters(ALL_BUSINESSES, filters, debouncedQuery),
-      [filters, debouncedQuery]
-    );
-    */
+    () => applyFilters(allBusinesses, filters, debouncedQuery),
+    [allBusinesses, filters, debouncedQuery]
+  );
 
   // Reset page when filters change
   const handleFilterChange = useCallback((next: BusinessFilters) => {
@@ -288,21 +382,12 @@ const Browse = () => {
             {/* Results bar: count + sort (F3.2.3) */}
             <div className="mb-6 flex items-center justify-between gap-4 flex-wrap">
               <p className="text-muted-foreground">
-                {isLoading ? (
-                  "Loading…"
-                ) : (
-                  <>
-                    Showing{" "}
-                    <span className="font-semibold text-foreground">
-                      {businesses.length}
-                    </span>{" "}
-                    of{" "}
-                    <span className="font-semibold text-foreground">
-                      {totalCount}
-                    </span>{" "}
-                    businesses
-                  </>
-                )}
+                {/* Copy reflects whether we're currently filtering to verified-only or showing all matches. */}
+                Showing{" "}
+                <span className="font-semibold text-foreground">
+                  {filteredBusinesses.length}
+                </span>{" "}
+                {filters.verified ? "verified businesses" : "businesses"}
               </p>
 
               <div className="flex items-center gap-3">
