@@ -1,4 +1,13 @@
-import { fetchAuthSession, getCurrentUser, signIn, signOut, signUp } from "aws-amplify/auth";
+import {
+  confirmSignUp,
+  fetchAuthSession,
+  fetchUserAttributes,
+  getCurrentUser,
+  resendSignUpCode,
+  signIn,
+  signOut,
+  signUp,
+} from "aws-amplify/auth";
 import { Hub } from "aws-amplify/utils";
 
 export type AppUser = {
@@ -117,4 +126,55 @@ export async function signUpThenEnsureProfileAndRole(
   }
 
   return { ok: true, userId: session.user.id };
+}
+
+/**
+ * After the user enters the email verification code from Cognito, confirm the account and sign in.
+ */
+export async function confirmEmailCodeAndSignIn(
+  username: string,
+  password: string,
+  confirmationCode: string
+): Promise<{ ok: true } | { ok: false; error: Error }> {
+  const code = confirmationCode.trim();
+  if (!code) {
+    return { ok: false, error: new Error("Enter the verification code from your email.") };
+  }
+
+  try {
+    await confirmSignUp({ username, confirmationCode: code });
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e : new Error(String(e)) };
+  }
+
+  try {
+    const out = await signIn({ username, password });
+    if (!out.isSignedIn) {
+      return {
+        ok: false,
+        error: new Error("Account verified, but sign-in needs an extra step. Try logging in again."),
+      };
+    }
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e : new Error(String(e)) };
+  }
+
+  return { ok: true };
+}
+
+export async function resendVerificationEmail(username: string): Promise<void> {
+  await resendSignUpCode({ username });
+}
+
+/** Best-effort display name after confirmation when sessionStorage metadata is missing. */
+export async function resolveDisplayNameForNewProfile(fallbackEmail: string): Promise<string> {
+  try {
+    const attrs = await fetchUserAttributes();
+    const n = attrs.name ?? attrs.given_name ?? attrs.email;
+    if (n) return n;
+  } catch {
+    // ignore
+  }
+  const local = fallbackEmail.split("@")[0];
+  return local || "User";
 }
