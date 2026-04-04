@@ -1,0 +1,129 @@
+enum AppRole {
+business_owner
+customer
+}
+
+
+enum VerificationStatus {
+pending
+verified
+rejected
+}
+
+
+enum ModerationStatus {
+ pending
+ approved
+ rejected
+}
+
+
+type Profile
+@model
+@auth(rules: [
+  { allow: owner },
+  { allow: private, operations: [read] },
+  { allow: public, operations: [read] }
+ 
+]) {
+id: ID!
+full_name: String!
+avatar_url: String
+
+
+roles: [UserRole] @hasMany(indexName: "byProfile", fields: ["id"])
+businessProfile: BusinessProfile @hasOne
+reviews: [Review] @hasMany(indexName: "byUser", fields: ["id"])
+reviewComments: [ReviewComment] @hasMany(indexName: "byUser", fields: ["id"])
+}
+
+
+type UserRole
+@model
+@auth(rules: [
+  { allow: owner }
+]) {
+id: ID!
+
+
+profileID: ID! @index(name: "byProfile")
+profile: Profile @belongsTo(fields: ["profileID"])
+
+
+role: AppRole!
+}
+
+
+type BusinessProfile
+@model
+@auth(rules: [
+  { allow: owner },
+  { allow: public, operations: [read] },
+  { allow: groups, groups: ["admin"] }
+]) {
+id: ID!
+
+
+profileID: ID!
+profile: Profile @belongsTo(fields: ["profileID"])
+
+
+business_name: String!
+category: String! @index(name: "byCategory", queryField: "businessProfilesByCategory")
+description: String
+address: String @index(name: "byAddress", queryField: "businessProfilesByAddress")
+phone: String
+website: String
+price_level: Int
+languages: [String]
+is_minority_owned: Boolean
+is_howard_affiliated: Boolean
+verification_status: VerificationStatus
+reviews: [Review] @hasMany(indexName: "byBusiness", fields: ["id"])
+}
+
+
+type Review
+ @model
+ @auth(rules: [
+   { allow: owner },
+   { allow: public, operations: [read] }
+ ]) {
+ id: ID!
+ rating: Int! # 1–5
+ comment: String!
+ userID: ID! @index(name: "byUser")
+ user: Profile @belongsTo(fields: ["userID"])
+ businessID: ID! @index(name: "byBusiness")
+ business: BusinessProfile @belongsTo(fields: ["businessID"])
+ moderation_status: ModerationStatus!
+ createdAt: AWSDateTime
+ updatedAt: AWSDateTime
+ editableUntil: AWSDateTime # Review edit window (set in backend logic)
+ comments: [ReviewComment] @hasMany(indexName: "byReview", fields: ["id"])
+}
+
+
+type ReviewComment
+ @model
+ @auth(rules: [
+   { allow: owner },
+   { allow: public, operations: [read] }
+ ]) {
+ id: ID!
+ reviewID: ID! @index(name: "byReview")
+ review: Review @belongsTo(fields: ["reviewID"])
+ userID: ID! @index(name: "byUser")
+ user: Profile @belongsTo(fields: ["userID"])
+ comment: String!
+ createdAt: AWSDateTime
+ updatedAt: AWSDateTime
+}
+
+
+# Anti-spam rules to implement in backend logic:
+# - Limit one review per user per business (enforced in backend logic)
+# - Allow users to edit/delete their review
+# - Allow users to add comments under their review
+# - Moderate reviews/comments before public display
+# - Restrict editing after 'editableUntil' timestamp

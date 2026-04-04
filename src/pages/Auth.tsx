@@ -10,7 +10,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { signIn, signUp, confirmSignUp, getCurrentUser, signOut } from "aws-amplify/auth";
+import { signIn, signUp, getCurrentUser, confirmSignUp, resendSignUpCode, signOut } from "aws-amplify/auth";
 import { generateClient } from "aws-amplify/api";
 import { createProfile, createUserRole } from "@/graphql/mutations";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { z } from "zod";
+import type { AppRole } from '@/API';
 
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -34,14 +35,13 @@ export default function Auth() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<"customer" | "business_owner">("customer");
-
-  // Confirmation step state
-  const [pendingEmail, setPendingEmail] = useState("");
+  const [showConfirm, setShowConfirm] = useState(() => !!sessionStorage.getItem("pendingSignup"));
+  const [pendingSignup, setPendingSignup] = useState<{ email: string; password: string; fullName: string; role: AppRole } | null>(() => {
+    const stored = sessionStorage.getItem("pendingSignup");
+    return stored ? JSON.parse(stored) : null;
+  });
   const [confirmationCode, setConfirmationCode] = useState("");
-  const [pendingUserId, setPendingUserId] = useState("");
-  const [pendingFullName, setPendingFullName] = useState("");
-  const [pendingRole, setPendingRole] = useState<"customer" | "business_owner">("customer");
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   // Login form
   const [loginEmail, setLoginEmail] = useState("");
@@ -55,12 +55,11 @@ export default function Auth() {
   useEffect(() => {
     getCurrentUser()
       .then(() => navigate("/"))
-      .catch(() => {/* not logged in */});
+      .catch(() => {});
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
       z.object({
         email: z.string().email("Please enter a valid email address"),
@@ -72,26 +71,22 @@ export default function Auth() {
         return;
       }
     }
-
     setLoading(true);
-
     try {
       // Clear any existing partial session before signing in
       await signOut().catch(() => {});
       await signIn({ username: loginEmail, password: loginPassword });
+      setLoading(false);
       toast({ title: "Welcome back!", description: "You have successfully logged in." });
       navigate("/");
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Login failed";
-      toast({ title: "Login Failed", description: message, variant: "destructive" });
-    } finally {
+    } catch (error: any) {
       setLoading(false);
+      toast({ title: "Login Failed", description: error.message || String(error), variant: "destructive" });
     }
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
       authSchema.parse({ email: signupEmail, password: signupPassword, fullName });
     } catch (error) {
@@ -100,12 +95,10 @@ export default function Auth() {
         return;
       }
     }
-
     setLoading(true);
-
     try {
       await signOut().catch(() => {});
-      const { userId } = await signUp({
+      await signUp({
         username: signupEmail,
         password: signupPassword,
         options: {
@@ -115,217 +108,213 @@ export default function Auth() {
           },
         },
       });
-
-      setPendingEmail(signupEmail);
-      setPendingUserId(userId ?? "");
-      setPendingFullName(fullName);
-      setPendingRole(role);
+      setLoading(false);
+      const signup = { email: signupEmail, password: signupPassword, fullName, role: role as AppRole };
+      setPendingSignup(signup);
+      sessionStorage.setItem("pendingSignup", JSON.stringify(signup));
       setShowConfirm(true);
-
       toast({
         title: "Check your email",
         description: "Enter the confirmation code we sent you.",
       });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Signup failed";
-      if (message.toLowerCase().includes("user already exists") || message.toLowerCase().includes("username exists")) {
+    } catch (error: any) {
+      setLoading(false);
+      if (error.message?.toLowerCase().includes("user already exists") || error.message?.toLowerCase().includes("username exists")) {
         toast({ title: "Account already exists", description: "Please use the Login tab instead.", variant: "destructive" });
       } else {
-        toast({ title: "Signup Failed", description: message, variant: "destructive" });
+        toast({ title: "Signup Failed", description: error.message || String(error), variant: "destructive" });
       }
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleConfirm = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
+    if (!pendingSignup) return;
+    setConfirmLoading(true);
     try {
       try {
-        await confirmSignUp({ username: pendingEmail, confirmationCode });
-      } catch (confirmError: unknown) {
-        const msg = confirmError instanceof Error ? confirmError.message : "";
+        await confirmSignUp({ username: pendingSignup.email, confirmationCode });
+      } catch (confirmError: any) {
+        const msg = confirmError?.message ?? "";
         if (!msg.toLowerCase().includes("current status is confirmed")) throw confirmError;
-        // Already confirmed — proceed to sign in
       }
 
-      // Sign in to get auth tokens so GraphQL mutations can be made
-      try {
-        await signIn({ username: pendingEmail, password: signupPassword });
-      } catch {
-        // If auto sign-in fails, send to login page
-        toast({ title: "Email confirmed!", description: "Please log in to continue." });
-        setShowConfirm(false);
-        return;
-      }
+      await signIn({ username: pendingSignup.email, password: pendingSignup.password });
 
       const client = generateClient();
-
-      // Create Profile record
-      await client.graphql({
+      const profileResult: any = await client.graphql({
         query: createProfile,
-        variables: { input: { id: pendingUserId, full_name: pendingFullName } },
-        authMode: "userPool",
+        variables: { input: { full_name: pendingSignup.fullName } },
       });
-
-      // Create UserRole record
+      const profileId = profileResult.data.createProfile.id;
       await client.graphql({
         query: createUserRole,
-        variables: { input: { profileID: pendingUserId, role: pendingRole } },
-        authMode: "userPool",
+        variables: { input: { profileID: profileId, role: pendingSignup.role } },
       });
 
-      toast({ title: "Account Created!", description: "Welcome! Your account has been created successfully." });
+      toast({ title: "Account Verified!", description: "Your account has been verified and you are now signed in." });
+      setShowConfirm(false);
+      setPendingSignup(null);
+      sessionStorage.removeItem("pendingSignup");
+      setConfirmationCode("");
       navigate("/");
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Confirmation failed";
-      toast({ title: "Confirmation Failed", description: message, variant: "destructive" });
-    } finally {
-      setLoading(false);
+    } catch (error: any) {
+      toast({ title: "Verification Failed", description: error.message || String(error), variant: "destructive" });
     }
+    setConfirmLoading(false);
   };
 
-  if (showConfirm) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">Confirm your email</CardTitle>
-            <CardDescription className="text-center">
-              Enter the code sent to {pendingEmail}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleConfirm} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="code">Confirmation Code</Label>
-                <Input
-                  id="code"
-                  type="text"
-                  placeholder="123456"
-                  value={confirmationCode}
-                  onChange={(e) => setConfirmationCode(e.target.value)}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Confirming...</> : "Confirm"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const handleResendCode = async () => {
+    if (!pendingSignup) return;
+    try {
+      await resendSignUpCode({ username: pendingSignup.email });
+      toast({ title: "Code Resent", description: "A new verification code has been sent to your email." });
+    } catch (error: any) {
+      toast({ title: "Resend Failed", description: error.message || String(error), variant: "destructive" });
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
-            Community Marketplace
-          </CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Community Marketplace</CardTitle>
           <CardDescription className="text-center">
             Supporting minority-owned and Howard-affiliated businesses
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
+          {showConfirm ? (
+            <form className="space-y-4" onSubmit={handleConfirm}>
+              <div className="text-center space-y-2">
+                <p className="text-lg font-semibold">Verify your email</p>
+                <p className="text-muted-foreground">Enter the confirmation code sent to {pendingSignup?.email}</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmation-code">Verification Code</Label>
+                <Input
+                  id="confirmation-code"
+                  type="text"
+                  placeholder="123456"
+                  value={confirmationCode}
+                  onChange={e => setConfirmationCode(e.target.value)}
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={confirmLoading}>
+                {confirmLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Verifying...</> : "Verify Account"}
+              </Button>
+              <Button type="button" variant="outline" className="w-full" onClick={handleResendCode}>
+                Resend Code
+              </Button>
+              <Button type="button" className="w-full" variant="ghost" onClick={() => {
+                setShowConfirm(false);
+                setConfirmationCode("");
+                sessionStorage.removeItem("pendingSignup");
+                setPendingSignup(null);
+              }}>
+                Back to Login
+              </Button>
+            </form>
+          ) : (
+            <Tabs defaultValue="login" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="login">Login</TabsTrigger>
+                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
-                  <Input
-                    id="login-email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="login-password">Password</Label>
-                  <Input
-                    id="login-password"
-                    type="password"
-                    placeholder="••••••"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Logging in...</> : "Login"}
-                </Button>
-              </form>
-            </TabsContent>
+              <TabsContent value="login">
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="login-email">Email</Label>
+                    <Input
+                      id="login-email"
+                      type="email"
+                      placeholder="your@email.com"
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="login-password">Password</Label>
+                    <Input
+                      id="login-password"
+                      type="password"
+                      placeholder="••••••"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Logging in...</> : "Login"}
+                  </Button>
+                  <Button type="button" variant="link" className="w-full mt-2" onClick={() => navigate("/password-reset")}>
+                    Forgot password?
+                  </Button>
+                </form>
+              </TabsContent>
 
-            <TabsContent value="signup">
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-name">Full Name</Label>
-                  <Input
-                    id="signup-name"
-                    type="text"
-                    placeholder="John Doe"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={signupEmail}
-                    onChange={(e) => setSignupEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={signupPassword}
-                    onChange={(e) => setSignupPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>I am a:</Label>
-                  <RadioGroup value={role} onValueChange={(value) => setRole(value as "customer" | "business_owner")}>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="customer" id="customer" />
-                      <Label htmlFor="customer" className="font-normal cursor-pointer">
-                        Customer - I want to discover and support businesses
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="business_owner" id="business_owner" />
-                      <Label htmlFor="business_owner" className="font-normal cursor-pointer">
-                        Business Owner - I want to list my business
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating account...</> : "Create Account"}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
+              <TabsContent value="signup">
+                <form onSubmit={handleSignup} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-name">Full Name</Label>
+                    <Input
+                      id="signup-name"
+                      type="text"
+                      placeholder="John Doe"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-email">Email</Label>
+                    <Input
+                      id="signup-email"
+                      type="email"
+                      placeholder="your@email.com"
+                      value={signupEmail}
+                      onChange={(e) => setSignupEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-password">Password</Label>
+                    <Input
+                      id="signup-password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={signupPassword}
+                      onChange={(e) => setSignupPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>I am a:</Label>
+                    <RadioGroup value={role} onValueChange={(value) => setRole(value as "customer" | "business_owner")}>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="customer" id="customer" />
+                        <Label htmlFor="customer" className="font-normal cursor-pointer">
+                          Customer - I want to discover and support businesses
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="business_owner" id="business_owner" />
+                        <Label htmlFor="business_owner" className="font-normal cursor-pointer">
+                          Business Owner - I want to list my business
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating account...</> : "Create Account"}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
+          )}
         </CardContent>
       </Card>
     </div>

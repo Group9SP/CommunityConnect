@@ -14,29 +14,44 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function AuthButton() {
-  const [username, setUsername] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     getCurrentUser()
-      .then((user) => setUsername(user.username))
-      .catch(() => setUsername(null));
+      .then(setUser)
+      .catch(() => setUser(null));
+
+    const listener = (data: any) => {
+      switch (data.payload.event) {
+        case 'signedIn':
+          getCurrentUser().then(setUser);
+          break;
+        case 'signedOut':
+          setUser(null);
+          break;
+        default:
+          break;
+      }
+    };
+    import('aws-amplify/utils').then(({ Hub }) => {
+      Hub.listen('auth', listener);
+    });
   }, []);
 
   const handleLogout = async () => {
     try {
       await signOut();
-      setUsername(null);
+      setUser(null);
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
       navigate("/");
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Logout failed";
-      toast({ title: "Logout Failed", description: message, variant: "destructive" });
+    } catch (error: any) {
+      toast({ title: "Logout Failed", description: error.message || String(error), variant: "destructive" });
     }
   };
 
-  if (!username) {
+  if (!user) {
     return (
       <Button onClick={() => navigate("/auth")} variant="default">
         Sign In
@@ -52,7 +67,9 @@ export default function AuthButton() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel>{username}</DropdownMenuLabel>
+        <DropdownMenuLabel>
+          {user.signInDetails?.loginId || user.username}
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>
           <LogOut className="mr-2 h-4 w-4" />
