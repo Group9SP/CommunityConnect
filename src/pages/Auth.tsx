@@ -11,6 +11,7 @@ import {
   getAppSession,
   resendVerificationEmail,
   resolveDisplayNameForNewProfile,
+  signOutUser,
   signUpThenEnsureProfileAndRole,
 } from "@/integrations/amplify/authSession";
 import { insertProfile, insertUserRole } from "@/integrations/amplify/userDirectory";
@@ -21,6 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
+import { PasswordToggleField } from "@/components/PasswordToggleField";
 import { Loader2 } from "lucide-react";
 import { z } from "zod";
 
@@ -46,6 +48,13 @@ function isUnconfirmedUserError(error: unknown): boolean {
   );
 }
 
+function isAlreadySignedInError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const name = "name" in error && typeof (error as { name: string }).name === "string" ? (error as { name: string }).name : "";
+  const msg = error instanceof Error ? error.message : "";
+  return name === "UserAlreadyAuthenticatedException" || msg.includes("already a signed in user");
+}
+
 export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -63,6 +72,10 @@ export default function Auth() {
   const [verifyContext, setVerifyContext] = useState<VerifyContext>("signup");
   const [confirmationCode, setConfirmationCode] = useState("");
   const [confirmLoading, setConfirmLoading] = useState(false);
+
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [showVerifyLoginPassword, setShowVerifyLoginPassword] = useState(false);
 
   useEffect(() => {
     getAppSession().then((session) => {
@@ -95,10 +108,8 @@ export default function Auth() {
     }
     setLoading(true);
 
-    try {
+    const attemptSignIn = async () => {
       const out = await signIn({ username: loginEmail, password: loginPassword });
-      setLoading(false);
-
       if (!out.isSignedIn) {
         toast({
           title: "Login Failed",
@@ -107,15 +118,48 @@ export default function Auth() {
         });
         return;
       }
-
       toast({
         title: "Welcome back!",
         description: "You have successfully logged in.",
       });
       navigate("/");
+    };
+
+    try {
+      try {
+        await signOutUser();
+      } catch {
+        // No session to clear — expected on first visit
+      }
+      await attemptSignIn();
     } catch (error: unknown) {
-      setLoading(false);
+      if (isAlreadySignedInError(error)) {
+        try {
+          await signOutUser();
+          await attemptSignIn();
+        } catch (retryErr: unknown) {
+          setLoading(false);
+          if (isUnconfirmedUserError(retryErr)) {
+            setVerifyContext("login");
+            setShowVerifyEmail(true);
+            setConfirmationCode("");
+            toast({
+              title: "Confirm your email",
+              description: "Enter the verification code we sent you, then you can sign in.",
+            });
+            return;
+          }
+          toast({
+            title: "Login Failed",
+            description: retryErr instanceof Error ? retryErr.message : "Login failed.",
+            variant: "destructive",
+          });
+        }
+        setLoading(false);
+        return;
+      }
       if (isUnconfirmedUserError(error)) {
+        setLoading(false);
         setVerifyContext("login");
         setShowVerifyEmail(true);
         setConfirmationCode("");
@@ -125,12 +169,15 @@ export default function Auth() {
         });
         return;
       }
+      setLoading(false);
       const message = error instanceof Error ? error.message : "Login failed.";
       toast({
         title: "Login Failed",
         description: message,
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -393,16 +440,15 @@ export default function Auth() {
                 />
               </div>
               {verifyContext === "login" ? (
-                <div className="space-y-2">
-                  <Label htmlFor="verify-login-password">Password</Label>
-                  <Input
-                    id="verify-login-password"
-                    type="password"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    required
-                  />
-                </div>
+                <PasswordToggleField
+                  id="verify-login-password"
+                  label="Password"
+                  value={loginPassword}
+                  onChange={setLoginPassword}
+                  show={showVerifyLoginPassword}
+                  onToggleShow={() => setShowVerifyLoginPassword((s) => !s)}
+                  autoComplete="current-password"
+                />
               ) : null}
               <Button type="submit" className="w-full" disabled={confirmLoading}>
                 {confirmLoading ? (
@@ -441,17 +487,15 @@ export default function Auth() {
                       required
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="login-password">Password</Label>
-                    <Input
-                      id="login-password"
-                      type="password"
-                      placeholder="••••••"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      required
-                    />
-                  </div>
+                  <PasswordToggleField
+                    id="login-password"
+                    label="Password"
+                    value={loginPassword}
+                    onChange={setLoginPassword}
+                    show={showLoginPassword}
+                    onToggleShow={() => setShowLoginPassword((s) => !s)}
+                    autoComplete="current-password"
+                  />
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? (
                       <>
@@ -492,17 +536,15 @@ export default function Auth() {
                       required
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="••••••"
-                      value={signupPassword}
-                      onChange={(e) => setSignupPassword(e.target.value)}
-                      required
-                    />
-                  </div>
+                  <PasswordToggleField
+                    id="signup-password"
+                    label="Password"
+                    value={signupPassword}
+                    onChange={setSignupPassword}
+                    show={showSignupPassword}
+                    onToggleShow={() => setShowSignupPassword((s) => !s)}
+                    autoComplete="new-password"
+                  />
                   <div className="space-y-2">
                     <Label>I am a:</Label>
                     <RadioGroup value={role} onValueChange={(value) => setRole(value as "customer" | "business_owner")}>
