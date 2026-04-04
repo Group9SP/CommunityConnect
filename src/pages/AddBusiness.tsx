@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { supabase } from "@/integrations/supabase/client";
+import { getAppSession } from "@/integrations/amplify/authSession";
 import {
   createBusinessProfile,
   DuplicateBusinessProfileError,
   getBusinessProfileForUser,
-} from "@/integrations/supabase/businessProfiles";
+} from "@/integrations/amplify/businessProfiles";
 import { addBusinessSchema, type AddBusinessFormValues } from "@/lib/businessFormSchema";
 import { useToast } from "@/hooks/use-toast";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
@@ -47,8 +47,7 @@ export default function AddBusiness() {
     let cancelled = false;
     (async () => {
       setCheckingExisting(true);
-      const { data: sessionData } = await supabase.auth.getSession();
-      const session = sessionData.session;
+      const session = await getAppSession();
       if (!session || cancelled) {
         if (!cancelled) setCheckingExisting(false);
         return;
@@ -69,8 +68,7 @@ export default function AddBusiness() {
     setSubmitting(true);
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const session = sessionData.session;
+      const session = await getAppSession();
 
       if (!session) {
         toast({

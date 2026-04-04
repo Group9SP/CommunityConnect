@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { signIn } from "aws-amplify/auth";
+import { getAppSession, signUpThenEnsureProfileAndRole } from "@/integrations/amplify/authSession";
+import { insertProfile, insertUserRole } from "@/integrations/amplify/userDirectory";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,19 +24,16 @@ export default function Auth() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<"customer" | "business_owner">("customer");
-  
-  // Login form
+
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
-  
-  // Signup form
+
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [fullName, setFullName] = useState("");
 
   useEffect(() => {
-    // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    getAppSession().then((session) => {
       if (session) {
         navigate("/");
       }
@@ -43,7 +42,7 @@ export default function Auth() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       authSchema.pick({ email: true, password: true }).parse({
         email: loginEmail,
@@ -62,28 +61,32 @@ export default function Auth() {
 
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: loginEmail,
-      password: loginPassword,
-    });
+    try {
+      const out = await signIn({ username: loginEmail, password: loginPassword });
+      setLoading(false);
 
-    setLoading(false);
+      if (!out.isSignedIn) {
+        toast({
+          title: "Login Failed",
+          description: "Additional sign-in steps may be required for this account.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    if (error) {
-      toast({
-        title: "Login Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (data.session) {
       toast({
         title: "Welcome back!",
         description: "You have successfully logged in.",
       });
       navigate("/");
+    } catch (error: unknown) {
+      setLoading(false);
+      const message = error instanceof Error ? error.message : "Login failed.";
+      toast({
+        title: "Login Failed",
+        description: message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -109,66 +112,50 @@ export default function Auth() {
 
     setLoading(true);
 
-    const redirectUrl = `${window.location.origin}/`;
-
-    const { data, error } = await supabase.auth.signUp({
-      email: signupEmail,
-      password: signupPassword,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName,
+    let result: Awaited<ReturnType<typeof signUpThenEnsureProfileAndRole>>;
+    try {
+      result = await signUpThenEnsureProfileAndRole(
+        {
+          email: signupEmail,
+          password: signupPassword,
+          fullName,
+          role,
         },
-      },
-    });
-
-    if (error) {
+        async (userId) => {
+          await insertProfile(userId, fullName);
+          await insertUserRole(userId, role);
+        }
+      );
+    } catch (error: unknown) {
       setLoading(false);
       toast({
         title: "Signup Failed",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Something went wrong.",
         variant: "destructive",
       });
       return;
     }
 
-    if (data.user) {
-      // Create profile and role
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .insert({
-          id: data.user.id,
-          full_name: fullName,
-        });
+    setLoading(false);
 
-      if (profileError) {
-        setLoading(false);
-        toast({
-          title: "Profile Creation Failed",
-          description: profileError.message,
-          variant: "destructive",
-        });
-        return;
-      }
+    if ("needsEmailConfirmation" in result && result.needsEmailConfirmation) {
+      toast({
+        title: "Confirm your email",
+        description: "We sent a confirmation link. After you confirm, sign in to finish account setup.",
+      });
+      return;
+    }
 
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .insert({
-          user_id: data.user.id,
-          role: role,
-        });
+    if ("error" in result && result.error) {
+      toast({
+        title: "Signup Failed",
+        description: result.error.message,
+        variant: "destructive",
+      });
+      return;
+    }
 
-      setLoading(false);
-
-      if (roleError) {
-        toast({
-          title: "Role Assignment Failed",
-          description: roleError.message,
-          variant: "destructive",
-        });
-        return;
-      }
-
+    if (result.ok) {
       toast({
         title: "Account Created!",
         description: "Welcome! Your account has been created successfully.",
@@ -181,9 +168,7 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
-            Community Marketplace
-          </CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Community Marketplace</CardTitle>
           <CardDescription className="text-center">
             Supporting minority-owned and Howard-affiliated businesses
           </CardDescription>

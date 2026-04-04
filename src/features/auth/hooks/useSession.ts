@@ -1,47 +1,41 @@
 import { useEffect, useState } from "react";
-import type { Session } from "@supabase/supabase-js";
 
-import { supabase } from "@/integrations/supabase/client";
+import { getAppSession, subscribeAuth, type AppSession } from "@/integrations/amplify/authSession";
 
 type UseSessionResult = {
-  session: Session | null;
+  session: AppSession | null;
   loading: boolean;
 };
 
 export function useSession(): UseSessionResult {
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<AppSession | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
 
-    supabase.auth
-      .getSession()
-      .then(({ data }) => {
-        if (!isMounted) return;
-        setSession(data.session ?? null);
-        setLoading(false);
-      })
-      .catch(() => {
-        if (!isMounted) return;
-        setSession(null);
-        setLoading(false);
-      });
+    const refresh = () => {
+      getAppSession()
+        .then((next) => {
+          if (!isMounted) return;
+          setSession(next);
+          setLoading(false);
+        })
+        .catch(() => {
+          if (!isMounted) return;
+          setSession(null);
+          setLoading(false);
+        });
+    };
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      if (!isMounted) return;
-      setSession(nextSession);
-      setLoading(false);
-    });
+    refresh();
+    const unsubscribe = subscribeAuth(refresh);
 
     return () => {
       isMounted = false;
-      subscription.unsubscribe();
+      unsubscribe();
     };
   }, []);
 
   return { session, loading };
 }
-

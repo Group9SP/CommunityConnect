@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchPublicBusinessListings } from "@/integrations/supabase/businessProfiles";
+import { fetchPublicBusinessListings } from "@/integrations/amplify/businessProfiles";
 import { Link, useSearchParams } from "react-router-dom";
 import { BusinessCard } from "@/components/BusinessCard";
 import { FilterSidebar } from "@/components/FilterSidebar";
@@ -33,7 +33,7 @@ interface Business {
 
 // ---------------------------------------------------------------------------
 
-// Sample rows for demos; live Supabase listings are merged in the Browse component.
+// Sample rows for demos; live API listings are merged in the Browse component.
 const SAMPLE_BUSINESSES: Business[] = [
   {
     id: "1",
@@ -129,14 +129,14 @@ function applyFilters(
 
 // Component
 const Browse = () => {
-  const { data: supabaseRows } = useQuery({
+  const { data: listingRows } = useQuery({
     queryKey: ["public-businesses"],
     queryFn: fetchPublicBusinessListings,
     staleTime: 30_000,
   });
 
   const allBusinesses = useMemo(() => {
-    const fromDb: Business[] = (supabaseRows ?? []).map((row) => ({
+    const fromDb: Business[] = (listingRows ?? []).map((row) => ({
       id: row.id,
       name: row.business_name,
       category: row.category,
@@ -151,7 +151,7 @@ const Browse = () => {
       description: row.description ?? "",
     }));
     return [...fromDb, ...SAMPLE_BUSINESSES];
-  }, [supabaseRows]);
+  }, [listingRows]);
 
   const [searchParams, setSearchParams] = useSearchParams();
 

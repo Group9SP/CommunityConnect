@@ -1,4 +1,5 @@
-import { supabase } from "./client";
+import { RestApiError, restGetJson, restPatchJson, restPostJson } from "./restClient";
+import { uploadBusinessImage } from "./storageUpload";
 
 export type ListingVisibility = "draft" | "published";
 
@@ -48,36 +49,19 @@ export class DuplicateBusinessProfileError extends Error {
   }
 }
 
+const pathPublicList = "/business_profiles/public";
+const pathMine = "/business_profiles/me";
+const pathBusiness = (id: string) => `/business_profiles/${id}`;
+const pathHistoryCount = (id: string) => `/business_profiles/${id}/history/count`;
+const pathAdminPending = "/business_profiles/admin/pending";
+const pathHistory = (id: string) => `/business_profiles/${id}/history`;
+
 export async function getBusinessProfileForUser(userId: string): Promise<BusinessProfileRow | null> {
-  const { data, error } = await supabase
-    .from("business_profiles")
-    .select("*")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (error) throw error;
-  return data as BusinessProfileRow | null;
+  void userId;
+  const data = await restGetJson<BusinessProfileRow>(pathMine);
+  return data ?? null;
 }
 
-export async function uploadBusinessImage(file: File, userId: string): Promise<string> {
-  const safeName = file.name.replace(/[^\w.-]+/g, "_");
-  const path = `${userId}/${Date.now()}-${safeName}`;
-
-  const { data, error } = await supabase.storage.from("business-images").upload(path, file, {
-    upsert: false,
-  });
-
-  if (error) throw error;
-
-  const { data: publicUrlData } = supabase.storage.from("business-images").getPublicUrl(data.path);
-
-  return publicUrlData.publicUrl;
-}
-
-/**
- * Inserts the row first, then uploads the logo and patches the row (F4.1.7 / F4.1.9).
- * If upload fails, the listing still exists without a logo.
- */
 export async function createBusinessProfile(
   input: CreateBusinessProfileInput,
   userId: string
@@ -103,37 +87,26 @@ export async function createBusinessProfile(
   };
 
   let row: BusinessProfileRow;
-  if (existing?.deleted_at) {
-    const { data: updated, error: updateError } = await supabase
-      .from("business_profiles")
-      .update(basePayload)
-      .eq("id", existing.id)
-      .eq("user_id", userId)
-      .select("*")
-      .single();
 
-    if (updateError) throw updateError;
-    row = updated as BusinessProfileRow;
-  } else {
-    const insertPayload = {
-      ...basePayload,
-      user_id: userId,
-      logo_url: null as string | null,
-    };
-
-    const { data: inserted, error: insertError } = await supabase
-      .from("business_profiles")
-      .insert(insertPayload)
-      .select("*")
-      .single();
-
-    if (insertError) {
-      if (insertError.code === "23505") {
-        throw new DuplicateBusinessProfileError();
-      }
-      throw insertError;
+  try {
+    if (existing?.deleted_at) {
+      const updated = await restPatchJson<BusinessProfileRow>(pathBusiness(existing.id), basePayload);
+      if (!updated) throw new Error("Failed to restore business profile.");
+      row = updated;
+    } else {
+      const inserted = await restPostJson<BusinessProfileRow>("/business_profiles", {
+        ...basePayload,
+        user_id: userId,
+        logo_url: null as string | null,
+      });
+      if (!inserted) throw new Error("Failed to create business profile.");
+      row = inserted;
     }
-    row = inserted as BusinessProfileRow;
+  } catch (e) {
+    if (e instanceof RestApiError && e.statusCode === 409) {
+      throw new DuplicateBusinessProfileError();
+    }
+    throw e;
   }
 
   let logoUploadFailed = false;
@@ -141,16 +114,9 @@ export async function createBusinessProfile(
   if (input.logoFile) {
     try {
       const logoUrl = await uploadBusinessImage(input.logoFile, userId);
-      const { data: updated, error: updateError } = await supabase
-        .from("business_profiles")
-        .update({ logo_url: logoUrl })
-        .eq("id", row.id)
-        .eq("user_id", userId)
-        .select("*")
-        .single();
-
-      if (updateError) throw updateError;
-      row = updated as BusinessProfileRow;
+      const updated = await restPatchJson<BusinessProfileRow>(pathBusiness(row.id), { logo_url: logoUrl });
+      if (!updated) throw new Error("Failed to update logo URL.");
+      row = updated;
     } catch {
       logoUploadFailed = true;
     }
@@ -164,6 +130,8 @@ export async function updateBusinessProfile(
   userId: string,
   input: UpdateBusinessProfileInput
 ): Promise<{ row: BusinessProfileRow; logoUploadFailed?: boolean }> {
+  void userId;
+
   let logoUrl: string | null | undefined;
 
   if (input.logoFile) {
@@ -194,16 +162,9 @@ export async function updateBusinessProfile(
     patch.logo_url = logoUrl;
   }
 
-  const { data, error } = await supabase
-    .from("business_profiles")
-    .update(patch)
-    .eq("id", businessId)
-    .eq("user_id", userId)
-    .select("*")
-    .single();
-
-  if (error) throw error;
-  return { row: data as BusinessProfileRow };
+  const data = await restPatchJson<BusinessProfileRow>(pathBusiness(businessId), patch);
+  if (!data) throw new Error("Failed to update business profile.");
+  return { row: data };
 }
 
 export async function setListingVisibility(
@@ -211,54 +172,74 @@ export async function setListingVisibility(
   userId: string,
   visibility: ListingVisibility
 ): Promise<BusinessProfileRow> {
-  const { data, error } = await supabase
-    .from("business_profiles")
-    .update({ listing_visibility: visibility })
-    .eq("id", businessId)
-    .eq("user_id", userId)
-    .select("*")
-    .single();
-
-  if (error) throw error;
-  return data as BusinessProfileRow;
+  void userId;
+  const data = await restPatchJson<BusinessProfileRow>(pathBusiness(businessId), {
+    listing_visibility: visibility,
+  });
+  if (!data) throw new Error("Failed to update listing visibility.");
+  return data;
 }
 
 export async function softDeleteBusinessProfile(businessId: string, userId: string): Promise<BusinessProfileRow> {
-  const { data, error } = await supabase
-    .from("business_profiles")
-    .update({ deleted_at: new Date().toISOString(), listing_visibility: "draft" })
-    .eq("id", businessId)
-    .eq("user_id", userId)
-    .select("*")
-    .single();
-
-  if (error) throw error;
-  return data as BusinessProfileRow;
+  void userId;
+  const data = await restPatchJson<BusinessProfileRow>(pathBusiness(businessId), {
+    deleted_at: new Date().toISOString(),
+    listing_visibility: "draft",
+  });
+  if (!data) throw new Error("Failed to delete business profile.");
+  return data;
 }
 
 export async function fetchPublicBusinessListings(): Promise<BusinessProfileRow[]> {
-  const { data, error } = await supabase
-    .from("business_profiles")
-    .select("*")
-    .order("business_name");
-
-  if (error) throw error;
-  return (data ?? []) as BusinessProfileRow[];
+  const data = await restGetJson<BusinessProfileRow[]>(pathPublicList, { public: true });
+  return data ?? [];
 }
 
 export async function fetchBusinessProfileById(id: string): Promise<BusinessProfileRow | null> {
-  const { data, error } = await supabase.from("business_profiles").select("*").eq("id", id).maybeSingle();
-
-  if (error) throw error;
-  return data as BusinessProfileRow | null;
+  const data = await restGetJson<BusinessProfileRow>(pathBusiness(id), { public: true });
+  return data ?? null;
 }
 
 export async function countBusinessProfileHistory(businessProfileId: string): Promise<number> {
-  const { count, error } = await supabase
-    .from("business_profile_history")
-    .select("id", { count: "exact", head: true })
-    .eq("business_profile_id", businessProfileId);
+  const data = await restGetJson<{ count: number }>(pathHistoryCount(businessProfileId));
+  return data?.count ?? 0;
+}
 
-  if (error) throw error;
-  return count ?? 0;
+export async function fetchPendingBusinessProfilesForAdmin(): Promise<BusinessProfileRow[]> {
+  const data = await restGetJson<BusinessProfileRow[]>(pathAdminPending);
+  return data ?? [];
+}
+
+export async function fetchBusinessProfileHistoryForAdmin(
+  businessId: string
+): Promise<
+  {
+    id: string;
+    business_profile_id: string;
+    changed_by: string | null;
+    changed_at: string;
+    action: string;
+    previous_row: Record<string, unknown> | null;
+    new_row: Record<string, unknown> | null;
+  }[]
+> {
+  const data = await restGetJson<
+    {
+      id: string;
+      business_profile_id: string;
+      changed_by: string | null;
+      changed_at: string;
+      action: string;
+      previous_row: Record<string, unknown> | null;
+      new_row: Record<string, unknown> | null;
+    }[]
+  >(pathHistory(businessId));
+  return data ?? [];
+}
+
+export async function setBusinessVerificationStatus(
+  businessId: string,
+  verification_status: "verified" | "rejected"
+): Promise<void> {
+  await restPatchJson(pathBusiness(businessId), { verification_status });
 }

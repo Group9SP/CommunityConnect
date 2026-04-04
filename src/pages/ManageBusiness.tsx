@@ -11,7 +11,7 @@ import {
   softDeleteBusinessProfile,
   updateBusinessProfile,
   type ListingVisibility,
-} from "@/integrations/supabase/businessProfiles";
+} from "@/integrations/amplify/businessProfiles";
 import { editBusinessSchema, type EditBusinessFormValues } from "@/lib/businessFormSchema";
 import { getVerificationStatusDescription, getVerificationStatusLabel } from "@/lib/verificationStatus";
 import type { VerificationStatus } from "@/lib/verificationStatus";

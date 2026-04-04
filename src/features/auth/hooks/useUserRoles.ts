@@ -1,15 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { supabase } from "@/integrations/supabase/client";
+import { restGetJson } from "@/integrations/amplify/restClient";
 
 export type UserRole = "admin" | "business_owner" | "customer" | (string & {});
 
 const QUERY_KEY = ["auth", "user-roles"];
 
-async function fetchUserRoles(userId: string): Promise<UserRole[]> {
-  const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId);
-  if (error) throw error;
-  return (data ?? []).map((r) => r.role as UserRole);
+async function fetchUserRoles(_userId: string): Promise<UserRole[]> {
+  void _userId;
+  const raw = await restGetJson<unknown>("/user_roles/me");
+  if (Array.isArray(raw)) {
+    return raw.map((r) => (r as { role: string }).role) as UserRole[];
+  }
+  if (raw && typeof raw === "object" && raw !== null && "roles" in raw) {
+    return (raw as { roles: UserRole[] }).roles;
+  }
+  return [];
 }
 
 export function useUserRoles(userId: string | null | undefined) {
@@ -28,4 +34,3 @@ export function useHasRole(userId: string | null | undefined, role: UserRole) {
     hasRole: query.data?.includes(role) ?? false,
   };
 }
-

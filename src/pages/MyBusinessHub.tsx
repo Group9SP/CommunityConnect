@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import { getBusinessProfileForUser } from "@/integrations/supabase/businessProfiles";
+import { getBusinessProfileForUser } from "@/integrations/amplify/businessProfiles";
 import { useSession } from "@/features/auth/hooks/useSession";
 
 export default function MyBusinessHub() {

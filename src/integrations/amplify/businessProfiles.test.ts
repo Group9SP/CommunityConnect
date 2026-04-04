@@ -25,52 +25,40 @@ const mockState = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("./client", () => ({
-  supabase: {
-    from: () => ({
-      select: () => ({
-        eq: () => ({
-          maybeSingle: async () => ({ data: mockState.existingProfile, error: null }),
-        }),
-      }),
-      insert: () => ({
-        select: () => ({
-          single: async () => ({ data: mockState.insertedRow, error: null }),
-        }),
-      }),
-      update: () => ({
-        eq: () => ({
-          eq: () => ({
-            select: () => ({
-              single: async () => ({
-                data: { ...mockState.insertedRow, logo_url: "https://cdn.example/logo.png" },
-                error: null,
-              }),
-            }),
-          }),
-        }),
-      }),
-    }),
-    storage: {
-      from: () => ({
-        upload: async () => {
-          if (mockState.uploadShouldFail) {
-            throw new Error("storage unavailable");
-          }
-          return { data: { path: "user-1/logo.png" }, error: null };
-        },
-        getPublicUrl: () => ({ data: { publicUrl: "https://cdn.example/logo.png" } }),
-      }),
-    },
+vi.mock("./restClient", () => ({
+  RestApiError: class RestApiError extends Error {
+    statusCode: number;
+    constructor(message: string, statusCode: number) {
+      super(message);
+      this.name = "RestApiError";
+      this.statusCode = statusCode;
+    }
   },
+  restGetJson: vi.fn(async () => mockState.existingProfile),
+  restPostJson: vi.fn(async () => mockState.insertedRow),
+  restPatchJson: vi.fn(async () => ({
+    ...mockState.insertedRow,
+    logo_url: "https://cdn.example/logo.png",
+  })),
 }));
 
+vi.mock("./storageUpload", () => ({
+  uploadBusinessImage: vi.fn(async () => {
+    if (mockState.uploadShouldFail) {
+      throw new Error("storage unavailable");
+    }
+    return "https://cdn.example/logo.png";
+  }),
+}));
+
+import { restGetJson, RestApiError } from "./restClient";
 import { createBusinessProfile, DuplicateBusinessProfileError } from "./businessProfiles";
 
 describe("createBusinessProfile (F4.1.9 duplicate + upload recovery)", () => {
   beforeEach(() => {
     mockState.existingProfile = null;
     mockState.uploadShouldFail = false;
+    vi.mocked(restGetJson).mockImplementation(async () => mockState.existingProfile);
   });
 
   it("throws DuplicateBusinessProfileError when an active listing exists (F4.1.10)", async () => {
@@ -107,5 +95,24 @@ describe("createBusinessProfile (F4.1.9 duplicate + upload recovery)", () => {
     );
     expect(result.row.id).toBe("new-id");
     expect(result.logoUploadFailed).toBe(true);
+  });
+
+  it("maps REST 409 to DuplicateBusinessProfileError", async () => {
+    const { restPostJson } = await import("./restClient");
+    vi.mocked(restGetJson).mockResolvedValueOnce(null);
+    vi.mocked(restPostJson).mockRejectedValueOnce(new RestApiError("conflict", 409));
+    await expect(
+      createBusinessProfile(
+        {
+          business_name: "A",
+          category: "B",
+          price_level: 2,
+          languages: ["English"],
+          is_minority_owned: true,
+          is_howard_affiliated: false,
+        },
+        "user-1"
+      )
+    ).rejects.toBeInstanceOf(DuplicateBusinessProfileError);
   });
 });

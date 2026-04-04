@@ -9,7 +9,7 @@ import { ReviewCard } from "@/components/ReviewCard";
 import AuthButton from "@/components/AuthButton";
 import { Star, MapPin, Phone, Globe, Clock, DollarSign, Languages, Loader2, Pencil } from "lucide-react";
 import coffeeImage from "@/assets/business-coffee.jpg";
-import { fetchBusinessProfileById, type BusinessProfileRow } from "@/integrations/supabase/businessProfiles";
+import { fetchBusinessProfileById, type BusinessProfileRow } from "@/integrations/amplify/businessProfiles";
 import { useSession } from "@/features/auth/hooks/useSession";
 
 type DetailModel = {

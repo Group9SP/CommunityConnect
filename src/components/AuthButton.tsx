@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { supabase } from "@/integrations/supabase/client";
+import { signOutUser } from "@/integrations/amplify/authSession";
 import { useSession } from "@/features/auth/hooks/useSession";
 import { useHasRole } from "@/features/auth/hooks/useUserRoles";
 
@@ -23,12 +23,13 @@ export default function AuthButton() {
   const { hasRole: isBusinessOwner } = useHasRole(user?.id, "business_owner");
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    
-    if (error) {
+    try {
+      await signOutUser();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Sign out failed.";
       toast({
         title: "Logout Failed",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
       return;
