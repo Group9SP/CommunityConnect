@@ -4,6 +4,7 @@ import { Search, Heart, Award, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import AuthButton from "@/components/AuthButton";
 import heroImage from "@/assets/hero-marketplace.jpg";
+import ImpactDashboard from "@/components/ImpactDashboard";
 
 const Index = () => {
   return (
@@ -78,6 +79,8 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      <ImpactDashboard />
 
       {/* Features Section */}
       <section className="py-20">
