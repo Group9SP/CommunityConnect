@@ -147,7 +147,7 @@ export default function AddBusiness() {
       <header className="bg-card border-b sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="text-2xl font-bold text-primary">
-            Community Connect
+            Minority X-Change
           </Link>
           <AuthButton />
         </div>
@@ -194,7 +194,7 @@ export default function AddBusiness() {
                             <FormLabel>Accuracy & verification (required)</FormLabel>
                             <FormDescription>
                               I confirm the information above is accurate to the best of my knowledge, and I authorize
-                              Community Connect to review this listing for verification purposes.
+                              Minority X-Change to review this listing for verification purposes.
                             </FormDescription>
                             <FormMessage />
                           </div>

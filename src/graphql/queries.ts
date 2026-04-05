@@ -112,6 +112,7 @@ export const getProfile = /* GraphQL */ `query GetProfile($id: ID!) {
       is_howard_affiliated
       verification_status
       logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
@@ -187,6 +188,7 @@ export const getBusinessProfile = /* GraphQL */ `query GetBusinessProfile($id: I
     is_howard_affiliated
     verification_status
     logo_url
+    website_clicks
     reviews {
       nextToken
       __typename
@@ -223,6 +225,7 @@ export const listBusinessProfiles = /* GraphQL */ `query ListBusinessProfiles(
       is_howard_affiliated
       verification_status
       logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
@@ -266,6 +269,7 @@ export const businessProfilesByCategory = /* GraphQL */ `query BusinessProfilesB
       is_howard_affiliated
       verification_status
       logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
@@ -309,6 +313,7 @@ export const businessProfilesByAddress = /* GraphQL */ `query BusinessProfilesBy
       is_howard_affiliated
       verification_status
       logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
@@ -355,6 +360,7 @@ export const getReview = /* GraphQL */ `query GetReview($id: ID!) {
       is_howard_affiliated
       verification_status
       logo_url
+      website_clicks
       createdAt
       updatedAt
       owner

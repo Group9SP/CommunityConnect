@@ -36,6 +36,7 @@ export const createProfile = /* GraphQL */ `mutation CreateProfile(
       is_howard_affiliated
       verification_status
       logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
@@ -88,6 +89,7 @@ export const updateProfile = /* GraphQL */ `mutation UpdateProfile(
       is_howard_affiliated
       verification_status
       logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
@@ -140,6 +142,7 @@ export const deleteProfile = /* GraphQL */ `mutation DeleteProfile(
       is_howard_affiliated
       verification_status
       logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
@@ -278,6 +281,7 @@ export const createBusinessProfile = /* GraphQL */ `mutation CreateBusinessProfi
     is_howard_affiliated
     verification_status
     logo_url
+    website_clicks
     reviews {
       nextToken
       __typename
@@ -322,6 +326,7 @@ export const updateBusinessProfile = /* GraphQL */ `mutation UpdateBusinessProfi
     is_howard_affiliated
     verification_status
     logo_url
+    website_clicks
     reviews {
       nextToken
       __typename
@@ -366,6 +371,7 @@ export const deleteBusinessProfile = /* GraphQL */ `mutation DeleteBusinessProfi
     is_howard_affiliated
     verification_status
     logo_url
+    website_clicks
     reviews {
       nextToken
       __typename
@@ -416,6 +422,7 @@ export const createReview = /* GraphQL */ `mutation CreateReview(
       is_howard_affiliated
       verification_status
       logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
@@ -474,6 +481,7 @@ export const updateReview = /* GraphQL */ `mutation UpdateReview(
       is_howard_affiliated
       verification_status
       logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
@@ -532,6 +540,7 @@ export const deleteReview = /* GraphQL */ `mutation DeleteReview(
       is_howard_affiliated
       verification_status
       logo_url
+      website_clicks
       createdAt
       updatedAt
       owner

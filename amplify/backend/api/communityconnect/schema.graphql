@@ -81,6 +81,7 @@ is_minority_owned: Boolean
 is_howard_affiliated: Boolean
 verification_status: VerificationStatus
 logo_url: String
+website_clicks: Int
 reviews: [Review] @hasMany(indexName: "byBusiness", fields: ["id"])
 }
 

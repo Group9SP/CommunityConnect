@@ -226,7 +226,7 @@ export default function ManageBusiness() {
       <header className="bg-card border-b sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between gap-4">
           <Link to="/" className="text-2xl font-bold text-primary shrink-0">
-            Community Connect
+            Minority X-Change
           </Link>
           <div className="flex items-center gap-2">
             {canDiscover && (

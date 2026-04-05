@@ -120,6 +120,7 @@ export const onCreateProfile = /* GraphQL */ `subscription OnCreateProfile(
       is_howard_affiliated
       verification_status
       logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
@@ -172,6 +173,7 @@ export const onUpdateProfile = /* GraphQL */ `subscription OnUpdateProfile(
       is_howard_affiliated
       verification_status
       logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
@@ -224,6 +226,7 @@ export const onDeleteProfile = /* GraphQL */ `subscription OnDeleteProfile(
       is_howard_affiliated
       verification_status
       logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
@@ -278,6 +281,7 @@ export const onCreateBusinessProfile = /* GraphQL */ `subscription OnCreateBusin
     is_howard_affiliated
     verification_status
     logo_url
+    website_clicks
     reviews {
       nextToken
       __typename
@@ -322,6 +326,7 @@ export const onUpdateBusinessProfile = /* GraphQL */ `subscription OnUpdateBusin
     is_howard_affiliated
     verification_status
     logo_url
+    website_clicks
     reviews {
       nextToken
       __typename
@@ -366,6 +371,7 @@ export const onDeleteBusinessProfile = /* GraphQL */ `subscription OnDeleteBusin
     is_howard_affiliated
     verification_status
     logo_url
+    website_clicks
     reviews {
       nextToken
       __typename
@@ -416,6 +422,7 @@ export const onCreateReview = /* GraphQL */ `subscription OnCreateReview(
       is_howard_affiliated
       verification_status
       logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
@@ -474,6 +481,7 @@ export const onUpdateReview = /* GraphQL */ `subscription OnUpdateReview(
       is_howard_affiliated
       verification_status
       logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
@@ -532,6 +540,7 @@ export const onDeleteReview = /* GraphQL */ `subscription OnDeleteReview(
       is_howard_affiliated
       verification_status
       logo_url
+      website_clicks
       createdAt
       updatedAt
       owner

@@ -275,7 +275,7 @@ export default function AdminReviewQueue() {
       <header className="bg-card border-b sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
           <Link to="/" className="text-2xl font-bold text-primary">
-            Community Connect
+            Minority X-Change
           </Link>
           <nav className="flex items-center gap-4">
             <Link to="/browse">Browse</Link>
