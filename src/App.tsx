@@ -8,6 +8,9 @@ import Browse from "./pages/Browse";
 import BusinessDetail from "./pages/BusinessDetail";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import AdminDashboard from "./pages/AdminDashboard";
+import VerificationSubmit from "./pages/VerificationSubmit";
+import { AdminRoute } from "./components/AdminRoute";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +25,15 @@ const App = () => (
           <Route path="/browse" element={<Browse />} />
           <Route path="/business/:id" element={<BusinessDetail />} />
           <Route path="/auth" element={<Auth />} />
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+          <Route path="/verification" element={<VerificationSubmit />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

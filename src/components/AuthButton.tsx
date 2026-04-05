@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, User as UserIcon } from "lucide-react";
+import { LogOut, ShieldCheck, User as UserIcon, FileCheck } from "lucide-react";
+import { useUserRoles } from "@/hooks/use-user-roles";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +19,7 @@ export default function AuthButton() {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isAdmin, isBusinessOwner } = useUserRoles(user?.id);
 
   useEffect(() => {
     // Get initial session
@@ -73,6 +75,19 @@ export default function AuthButton() {
         <DropdownMenuLabel>
           {user.user_metadata?.full_name || user.email}
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {isBusinessOwner && (
+          <DropdownMenuItem onClick={() => navigate("/verification")}>
+            <FileCheck className="mr-2 h-4 w-4" />
+            Verification
+          </DropdownMenuItem>
+        )}
+        {isAdmin && (
+          <DropdownMenuItem onClick={() => navigate("/admin")}>
+            <ShieldCheck className="mr-2 h-4 w-4" />
+            Admin
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>
           <LogOut className="mr-2 h-4 w-4" />

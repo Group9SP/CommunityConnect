@@ -1,73 +1,55 @@
-# Welcome to your Lovable project
+# CommunityConnect (Minority X-Change)
 
-## Project info
+Discover and support verified minority-owned and Howard University-affiliated businesses. Connect with authentic entrepreneurs making a difference in our community.
 
-**URL**: https://lovable.dev/projects/ca100ae6-3257-4e12-ab37-81565a3d8ee8
+## Tech Stack
 
-## How can I edit this code?
+- **Vite** - Build tool
+- **TypeScript** - Type safety
+- **React 18** - UI framework
+- **shadcn-ui** - Component library
+- **Tailwind CSS** - Styling
+- **Supabase** - Backend (auth, database)
+- **React Query** - Server state management
 
-There are several ways of editing your application.
+## Prerequisites
 
-**Use Lovable**
+- Node.js 18+ (recommend [nvm](https://github.com/nvm-sh/nvm))
+- npm
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/ca100ae6-3257-4e12-ab37-81565a3d8ee8) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Local Development
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# 1. Clone and navigate to the project
+cd CommunityConnect
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# 2. Install dependencies
+npm install
 
-# Step 3: Install the necessary dependencies.
-npm i
+# 3. Configure environment variables (see below)
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# 4. Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The app runs at **http://localhost:8080**.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Environment Variables
 
-**Use GitHub Codespaces**
+Create a `.env` file in the project root with:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=your-anon-key
+```
 
-## What technologies are used for this project?
+Get these from your [Supabase project settings](https://supabase.com/dashboard/project/_/settings/api).
 
-This project is built with:
+## Scripts
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/ca100ae6-3257-4e12-ab37-81565a3d8ee8) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start dev server |
+| `npm run build` | Production build |
+| `npm run preview` | Preview production build |
+| `npm run lint` | Run ESLint |
