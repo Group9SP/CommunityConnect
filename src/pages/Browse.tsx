@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchPublicBusinessListings } from "@/integrations/amplify/businessProfiles";
 import { Link, useSearchParams } from "react-router-dom";
@@ -23,7 +23,6 @@ import {
 } from "@/types/business-filters";
 import {
   useBusinessSearch,
-  applyFilters,
   type Business,
 } from "@/hooks/useBusinessSearch";
 import coffeeImage from "@/assets/business-coffee.jpg";
@@ -121,30 +120,6 @@ function filtersFromParams(params: URLSearchParams): BusinessFilters {
 }
 
 const Browse = () => {
-  const { data: listingRows } = useQuery({
-    queryKey: ["public-businesses"],
-    queryFn: fetchPublicBusinessListings,
-    staleTime: 30_000,
-  });
-
-  const allBusinesses = useMemo(() => {
-    const fromDb: Business[] = (listingRows ?? []).map((row) => ({
-      id: row.id,
-      name: row.business_name,
-      category: row.category,
-      image: row.logo_url ?? coffeeImage,
-      rating: 0,
-      reviewCount: 0,
-      priceLevel: row.price_level,
-      languages: row.languages ?? [],
-      location: row.address ?? "—",
-      isVerified: row.verification_status === "verified",
-      isHowardAffiliated: row.is_howard_affiliated,
-      description: row.description ?? "",
-    }));
-    return [...fromDb, ...SAMPLE_BUSINESSES];
-  }, [listingRows]);
-
   const [searchParams, setSearchParams] = useSearchParams();
 
   // ── Filter state (F3.2.7 — init from URL) ──────────────────────────────
@@ -192,10 +167,7 @@ const Browse = () => {
     debounceRef.current = setTimeout(() => setDebouncedQuery(value), 300);
   }, []);
 
-  const filteredBusinesses = useMemo(
-    () => applyFilters(allBusinesses, filters, debouncedQuery),
-    [allBusinesses, filters, debouncedQuery]
-  );
+  const filteredBusinesses = businesses;
 
   // Reset page when filters change
   const handleFilterChange = useCallback((next: BusinessFilters) => {
@@ -288,7 +260,7 @@ const Browse = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="text-2xl font-bold text-primary">
-              Community Connect
+              Minority X-Change
             </Link>
             <nav className="flex items-center gap-4">
               <Link to="/browse">
@@ -438,7 +410,7 @@ const Browse = () => {
                   <BusinessCard key={business.id} {...business} />
                 ))}
               </div>
-            ) : !listLoading ? (
+            ) : (
               <div className="text-center py-20 text-muted-foreground">
                 <p className="text-lg font-medium">
                   No businesses match your filters.
@@ -499,7 +471,7 @@ const Browse = () => {
       {/* ── Footer ── */}
       <footer className="bg-secondary text-secondary-foreground py-8 mt-20">
         <div className="container mx-auto px-4 text-center">
-          <p>&copy; 2025 Community Business Connect. Empowering minority-owned businesses.</p>
+          <p>&copy; 2025 Minority X-Change. Empowering minority-owned businesses.</p>
         </div>
       </footer>
 

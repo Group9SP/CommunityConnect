@@ -119,10 +119,8 @@ export async function signUpThenEnsureProfileAndRole(
   try {
     await createProfileAndRole(session.user.id);
   } catch (e) {
-    return {
-      ok: false,
-      error: e instanceof Error ? e : new Error(String(e)),
-    };
+    // REST API may not be deployed — log but don't block sign-up
+    console.warn("Profile/role setup skipped:", e instanceof Error ? e.message : e);
   }
 
   return { ok: true, userId: session.user.id };

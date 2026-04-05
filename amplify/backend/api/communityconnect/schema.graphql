@@ -74,11 +74,14 @@ description: String
 address: String @index(name: "byAddress", queryField: "businessProfilesByAddress")
 phone: String
 website: String
+hours: String
 price_level: Int
 languages: [String]
 is_minority_owned: Boolean
 is_howard_affiliated: Boolean
 verification_status: VerificationStatus
+logo_url: String
+website_clicks: Int
 reviews: [Review] @hasMany(indexName: "byBusiness", fields: ["id"])
 }
 
@@ -96,10 +99,11 @@ type Review
  user: Profile @belongsTo(fields: ["userID"])
  businessID: ID! @index(name: "byBusiness")
  business: BusinessProfile @belongsTo(fields: ["businessID"])
+ review_name: String
  moderation_status: ModerationStatus!
  createdAt: AWSDateTime
  updatedAt: AWSDateTime
- editableUntil: AWSDateTime # Review edit window (set in backend logic)
+ editableUntil: AWSDateTime
  comments: [ReviewComment] @hasMany(indexName: "byReview", fields: ["id"])
 }
 

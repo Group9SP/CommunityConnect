@@ -29,11 +29,14 @@ export const createProfile = /* GraphQL */ `mutation CreateProfile(
       address
       phone
       website
+      hours
       price_level
       languages
       is_minority_owned
       is_howard_affiliated
       verification_status
+      logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
@@ -79,11 +82,14 @@ export const updateProfile = /* GraphQL */ `mutation UpdateProfile(
       address
       phone
       website
+      hours
       price_level
       languages
       is_minority_owned
       is_howard_affiliated
       verification_status
+      logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
@@ -129,11 +135,14 @@ export const deleteProfile = /* GraphQL */ `mutation DeleteProfile(
       address
       phone
       website
+      hours
       price_level
       languages
       is_minority_owned
       is_howard_affiliated
       verification_status
+      logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
@@ -265,11 +274,14 @@ export const createBusinessProfile = /* GraphQL */ `mutation CreateBusinessProfi
     address
     phone
     website
+    hours
     price_level
     languages
     is_minority_owned
     is_howard_affiliated
     verification_status
+    logo_url
+    website_clicks
     reviews {
       nextToken
       __typename
@@ -307,11 +319,14 @@ export const updateBusinessProfile = /* GraphQL */ `mutation UpdateBusinessProfi
     address
     phone
     website
+    hours
     price_level
     languages
     is_minority_owned
     is_howard_affiliated
     verification_status
+    logo_url
+    website_clicks
     reviews {
       nextToken
       __typename
@@ -349,11 +364,14 @@ export const deleteBusinessProfile = /* GraphQL */ `mutation DeleteBusinessProfi
     address
     phone
     website
+    hours
     price_level
     languages
     is_minority_owned
     is_howard_affiliated
     verification_status
+    logo_url
+    website_clicks
     reviews {
       nextToken
       __typename
@@ -397,16 +415,20 @@ export const createReview = /* GraphQL */ `mutation CreateReview(
       address
       phone
       website
+      hours
       price_level
       languages
       is_minority_owned
       is_howard_affiliated
       verification_status
+      logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
       __typename
     }
+    review_name
     moderation_status
     createdAt
     updatedAt
@@ -452,16 +474,20 @@ export const updateReview = /* GraphQL */ `mutation UpdateReview(
       address
       phone
       website
+      hours
       price_level
       languages
       is_minority_owned
       is_howard_affiliated
       verification_status
+      logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
       __typename
     }
+    review_name
     moderation_status
     createdAt
     updatedAt
@@ -507,16 +533,20 @@ export const deleteReview = /* GraphQL */ `mutation DeleteReview(
       address
       phone
       website
+      hours
       price_level
       languages
       is_minority_owned
       is_howard_affiliated
       verification_status
+      logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
       __typename
     }
+    review_name
     moderation_status
     createdAt
     updatedAt
@@ -546,6 +576,7 @@ export const createReviewComment = /* GraphQL */ `mutation CreateReviewComment(
       comment
       userID
       businessID
+      review_name
       moderation_status
       createdAt
       updatedAt
@@ -588,6 +619,7 @@ export const updateReviewComment = /* GraphQL */ `mutation UpdateReviewComment(
       comment
       userID
       businessID
+      review_name
       moderation_status
       createdAt
       updatedAt
@@ -630,6 +662,7 @@ export const deleteReviewComment = /* GraphQL */ `mutation DeleteReviewComment(
       comment
       userID
       businessID
+      review_name
       moderation_status
       createdAt
       updatedAt

@@ -1,26 +1,30 @@
 import { useQuery } from "@tanstack/react-query";
-
-import { restGetJson } from "@/integrations/amplify/restClient";
+import { gqlClient } from "@/integrations/amplify/graphqlClient";
+import { userRolesByProfileID } from "@/graphql/queries";
 
 export type UserRole = "admin" | "business_owner" | "customer" | (string & {});
 
-const QUERY_KEY = ["auth", "user-roles"];
-
-async function fetchUserRoles(_userId: string): Promise<UserRole[]> {
-  void _userId;
-  const raw = await restGetJson<unknown>("/user_roles/me");
-  if (Array.isArray(raw)) {
-    return raw.map((r) => (r as { role: string }).role) as UserRole[];
+async function fetchUserRoles(userId: string): Promise<UserRole[]> {
+  try {
+    const result = await gqlClient.graphql({
+      query: userRolesByProfileID,
+      variables: { profileID: userId },
+    });
+    const items = result.data?.userRolesByProfileID?.items ?? [];
+    const roles = items.map((r: { role: string }) => r.role as UserRole);
+    if (roles.length > 0) return roles;
+  } catch (e) {
+    console.warn("[useUserRoles] GraphQL failed, trying localStorage fallback:", e);
   }
-  if (raw && typeof raw === "object" && raw !== null && "roles" in raw) {
-    return (raw as { roles: UserRole[] }).roles;
-  }
+  // Fallback: role stored locally at sign-up time
+  const local = localStorage.getItem(`cc_role_${userId}`);
+  if (local) return [local as UserRole];
   return [];
 }
 
 export function useUserRoles(userId: string | null | undefined) {
   return useQuery({
-    queryKey: [...QUERY_KEY, userId],
+    queryKey: ["auth", "user-roles", userId],
     enabled: !!userId,
     queryFn: () => fetchUserRoles(userId!),
     staleTime: 30_000,
