@@ -55,7 +55,7 @@ const Index = () => {
       <nav className="absolute top-0 left-0 right-0 z-20 bg-transparent">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="text-2xl font-bold text-white pl-12">
-            Minority X-Change
+            Community Connect
           </Link>
           <div className="flex items-center gap-4">
             <Link to="/browse">
@@ -138,7 +138,7 @@ const Index = () => {
             </div>
             <div>
               <div className="text-4xl font-bold text-primary">{impactKPIs?.totalWebsiteClicks ?? 0}</div>
-              <div className="text-muted-foreground mt-2">Website Clicks</div>
+              <div className="text-muted-foreground mt-2">Business Page Visits</div>
             </div>
             <div>
               <div className="text-4xl font-bold text-primary">{impactKPIs?.totalReviews ?? 0}</div>
@@ -221,7 +221,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="bg-secondary text-secondary-foreground py-8">
         <div className="container mx-auto px-4 text-center">
-          <p>&copy; 2025 Minority X-Change. Empowering minority-owned businesses.</p>
+          <p>&copy; 2025 Community Connect. Empowering minority-owned businesses.</p>
         </div>
       </footer>
     </div>

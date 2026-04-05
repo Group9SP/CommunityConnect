@@ -27,7 +27,7 @@ export function AppSidebar() {
           collapsed ? "text-xs" : "text-sm"
         )}
       >
-        {collapsed ? "MX" : "Minority X-Change"}
+        {collapsed ? "CC" : "Community Connect"}
       </button>
 
       {/* Nav links */}
