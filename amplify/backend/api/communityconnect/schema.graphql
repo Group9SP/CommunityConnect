@@ -58,7 +58,7 @@ type BusinessProfile
 @model
 @auth(rules: [
   { allow: owner },
-  { allow: public, operations: [read] },
+  { allow: public, operations: [read, update] },
   { allow: groups, groups: ["admin"] }
 ]) {
 id: ID!

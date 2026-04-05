@@ -296,51 +296,6 @@ export const createBusinessProfile = /* GraphQL */ `mutation CreateBusinessProfi
   APITypes.CreateBusinessProfileMutationVariables,
   APITypes.CreateBusinessProfileMutation
 >;
-export const updateBusinessProfile = /* GraphQL */ `mutation UpdateBusinessProfile(
-  $input: UpdateBusinessProfileInput!
-  $condition: ModelBusinessProfileConditionInput
-) {
-  updateBusinessProfile(input: $input, condition: $condition) {
-    id
-    profileID
-    profile {
-      id
-      full_name
-      avatar_url
-      createdAt
-      updatedAt
-      profileBusinessProfileId
-      owner
-      __typename
-    }
-    business_name
-    category
-    description
-    address
-    phone
-    website
-    hours
-    price_level
-    languages
-    is_minority_owned
-    is_howard_affiliated
-    verification_status
-    logo_url
-    website_clicks
-    reviews {
-      nextToken
-      __typename
-    }
-    createdAt
-    updatedAt
-    owner
-    __typename
-  }
-}
-` as GeneratedMutation<
-  APITypes.UpdateBusinessProfileMutationVariables,
-  APITypes.UpdateBusinessProfileMutation
->;
 export const deleteBusinessProfile = /* GraphQL */ `mutation DeleteBusinessProfile(
   $input: DeleteBusinessProfileInput!
   $condition: ModelBusinessProfileConditionInput
@@ -691,4 +646,49 @@ export const deleteReviewComment = /* GraphQL */ `mutation DeleteReviewComment(
 ` as GeneratedMutation<
   APITypes.DeleteReviewCommentMutationVariables,
   APITypes.DeleteReviewCommentMutation
+>;
+export const updateBusinessProfile = /* GraphQL */ `mutation UpdateBusinessProfile(
+  $input: UpdateBusinessProfileInput!
+  $condition: ModelBusinessProfileConditionInput
+) {
+  updateBusinessProfile(input: $input, condition: $condition) {
+    id
+    profileID
+    profile {
+      id
+      full_name
+      avatar_url
+      createdAt
+      updatedAt
+      profileBusinessProfileId
+      owner
+      __typename
+    }
+    business_name
+    category
+    description
+    address
+    phone
+    website
+    hours
+    price_level
+    languages
+    is_minority_owned
+    is_howard_affiliated
+    verification_status
+    logo_url
+    website_clicks
+    reviews {
+      nextToken
+      __typename
+    }
+    createdAt
+    updatedAt
+    owner
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.UpdateBusinessProfileMutationVariables,
+  APITypes.UpdateBusinessProfileMutation
 >;

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -115,6 +115,16 @@ const BusinessDetail = () => {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const queryClient = useQueryClient();
 
+  // Track page visit
+  useEffect(() => {
+    if (!id) return;
+    gqlClient.graphql({
+      query: `mutation Track($input: UpdateBusinessProfileInput!) { updateBusinessProfile(input: $input) { id website_clicks } }`,
+      variables: { input: { id, website_clicks: ((row as any)?.website_clicks ?? 0) + 1 } },
+      authMode: "apiKey",
+    }).catch(() => {});
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Fetch reviews for this business
   const { data: reviewsData, refetch: refetchReviews } = useQuery({
     queryKey: ["reviews", id],
@@ -180,7 +190,7 @@ const BusinessDetail = () => {
       <header className="bg-card border-b sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link to="/" className="text-2xl font-bold text-primary">Minority X-Change</Link>
+            <Link to="/" className="text-2xl font-bold text-primary">Community Connect</Link>
             <nav className="flex items-center gap-4">
               <Link to="/browse"><Button variant="ghost">Browse</Button></Link>
               {isOwner && (
@@ -424,15 +434,6 @@ const BusinessDetail = () => {
                         className="text-sm text-primary hover:underline break-all"
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={async () => {
-                          try {
-                            const current = (row as any)?.website_clicks ?? 0;
-                            await gqlClient.graphql({
-                              query: `mutation Track($input: UpdateBusinessProfileInput!) { updateBusinessProfile(input: $input) { id website_clicks } }`,
-                              variables: { input: { id: business.id, website_clicks: current + 1 } },
-                            });
-                          } catch { /* non-critical */ }
-                        }}
                       >
                         {business.website}
                       </a>
@@ -459,7 +460,7 @@ const BusinessDetail = () => {
 
       <footer className="bg-secondary text-secondary-foreground py-8 mt-12">
         <div className="container mx-auto px-4 text-center">
-          <p>&copy; 2026 Minority X-Change. Empowering minority-owned businesses.</p>
+          <p>&copy; 2026 Community Connect. Empowering minority-owned businesses.</p>
         </div>
       </footer>
     </div>
