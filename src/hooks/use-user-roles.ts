@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { gqlClient } from "@/integrations/amplify/graphqlClient";
+import { userRolesByProfileID } from "@/graphql/queries";
 
 export type AppRole = "customer" | "business_owner" | "admin";
 
@@ -17,27 +18,36 @@ export function useUserRoles(userId: string | undefined) {
     let cancelled = false;
     setLoading(true);
 
-    supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .then(({ data, error }) => {
+    gqlClient.graphql({
+      query: userRolesByProfileID,
+      variables: { profileID: userId },
+    })
+      .then((result) => {
         if (cancelled) return;
-        if (error) {
-          setRoles([]);
+        const items = result.data?.userRolesByProfileID?.items ?? [];
+        const parsed = items.map((r: { role: string }) => r.role as AppRole);
+        if (parsed.length === 0) {
+          const local = localStorage.getItem(`cc_role_${userId}`);
+          setRoles(local ? [local as AppRole] : []);
         } else {
-          setRoles((data ?? []).map((r) => r.role as AppRole));
+          setRoles(parsed);
         }
+        setLoading(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        const local = localStorage.getItem(`cc_role_${userId}`);
+        setRoles(local ? [local as AppRole] : []);
         setLoading(false);
       });
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [userId]);
 
-  const isAdmin = roles.includes("admin");
-  const isBusinessOwner = roles.includes("business_owner");
-
-  return { roles, loading, isAdmin, isBusinessOwner };
+  return {
+    roles,
+    loading,
+    isAdmin: roles.includes("admin"),
+    isBusinessOwner: roles.includes("business_owner"),
+  };
 }

@@ -123,6 +123,7 @@ export default function AddBusiness() {
         return;
       }
       const message = error instanceof Error ? error.message : "Something went wrong while listing your business.";
+      console.error("[AddBusiness] createBusinessProfile error:", error);
       toast({
         title: "Could not list business",
         description: message,

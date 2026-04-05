@@ -1,8 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, User as UserIcon, ClipboardList, Building2 } from "lucide-react";
-import { LogOut, ShieldCheck, User as UserIcon, FileCheck } from "lucide-react";
+import { LogOut, ShieldCheck, User as UserIcon, FileCheck, ClipboardList, Building2 } from "lucide-react";
 import { useUserRoles } from "@/hooks/use-user-roles";
 import {
   DropdownMenu,
@@ -14,32 +13,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { signOutUser } from "@/integrations/amplify/authSession";
 import { useSession } from "@/features/auth/hooks/useSession";
-import { useHasRole } from "@/features/auth/hooks/useUserRoles";
 
 export default function AuthButton() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { session } = useSession();
   const user = session?.user ?? null;
-  const { hasRole: isAdmin } = useHasRole(user?.id, "admin");
-  const { hasRole: isBusinessOwner } = useHasRole(user?.id, "business_owner");
   const { isAdmin, isBusinessOwner } = useUserRoles(user?.id);
-
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   const handleLogout = async () => {
     try {
@@ -71,7 +51,7 @@ export default function AuthButton() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>
-          {user.signInDetails?.loginId || user.username}
+          {user.user_metadata?.full_name || user.email || user.signInDetails?.loginId}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {isAdmin && (

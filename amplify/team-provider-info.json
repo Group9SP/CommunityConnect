@@ -17,7 +17,8 @@
         "communityconnectfb602f9c": {}
       },
       "api": {
-        "communityconnect": {}
+        "communityconnect": {},
+        "minorityapi": {}
       },
       "function": {
         "reviewPreCheck": {
@@ -28,6 +29,9 @@
           "deploymentBucketName": "amplify-communityconnect-dev-7a86e-deployment",
           "s3Key": "amplify-builds/communityconnectfb602f9cPostConfirmation-5a444d423662655a664e-build.zip"
         }
+      },
+      "storage": {
+        "minoritystorage": {}
       }
     }
   }

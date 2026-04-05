@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { restGetJson, restPatchJson } from "@/integrations/amplify/restClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import AuthButton from "@/components/AuthButton";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Download, ShieldCheck } from "lucide-react";
-import type { User } from "@supabase/supabase-js";
+import { useSession } from "@/features/auth/hooks/useSession";
+import { getUrl } from "aws-amplify/storage";
 
 type RequestRow = {
   id: string;
@@ -28,74 +29,29 @@ type RequestRow = {
 
 export default function AdminDashboard() {
   const { toast } = useToast();
+  const { session } = useSession();
+  const userId = session?.user?.id;
   const [rows, setRows] = useState<RequestRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [rejectReason, setRejectReason] = useState<Record<string, string>>({});
   const [actingId, setActingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data: reqs, error: reqErr } = await supabase
-      .from("verification_requests")
-      .select(
-        "id, business_profile_id, submitted_by, status, requests_minority_owned, requests_howard_affiliated, minority_document_path, howard_document_path, admin_notes, rejection_reason, created_at"
-      )
-      .eq("status", "pending")
-      .order("created_at", { ascending: true });
-
-    if (reqErr) {
+    try {
+      const data = await restGetJson<RequestRow[]>("/verification_requests/pending");
+      setRows(data ?? []);
+    } catch (e) {
       toast({
         title: "Could not load requests",
-        description: reqErr.message,
+        description: e instanceof Error ? e.message : "Unknown error",
         variant: "destructive",
       });
       setRows([]);
-      setLoading(false);
-      return;
     }
-
-    const list = reqs ?? [];
-    if (list.length === 0) {
-      setRows([]);
-      setLoading(false);
-      return;
-    }
-
-    const bpIds = [...new Set(list.map((r) => r.business_profile_id))];
-    const { data: bps, error: bpErr } = await supabase
-      .from("business_profiles")
-      .select("id, business_name, category")
-      .in("id", bpIds);
-
-    if (bpErr) {
-      toast({
-        title: "Could not load businesses",
-        description: bpErr.message,
-        variant: "destructive",
-      });
-      setRows([]);
-      setLoading(false);
-      return;
-    }
-
-    const bpMap = new Map((bps ?? []).map((b) => [b.id, b]));
-    const merged: RequestRow[] = list.map((r) => {
-      const bp = bpMap.get(r.business_profile_id);
-      return {
-        ...r,
-        business_name: bp?.business_name ?? "Unknown business",
-        category: bp?.category ?? "—",
-      };
-    });
-    setRows(merged);
     setLoading(false);
   }, [toast]);
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user: u } }) => setUser(u));
-  }, []);
 
   useEffect(() => {
     void load();
@@ -103,44 +59,39 @@ export default function AdminDashboard() {
 
   const downloadDoc = async (path: string | null, label: string) => {
     if (!path) return;
-    const { data, error } = await supabase.storage.from("verification-documents").download(path);
-    if (error) {
-      toast({ title: "Download failed", description: error.message, variant: "destructive" });
-      return;
+    try {
+      const { url } = await getUrl({ path });
+      const a = document.createElement("a");
+      a.href = url.toString();
+      a.download = `${label}-${path.split("/").pop() ?? "file"}`;
+      a.click();
+    } catch (e) {
+      toast({ title: "Download failed", description: e instanceof Error ? e.message : "Error", variant: "destructive" });
     }
-    const url = URL.createObjectURL(data);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${label}-${path.split("/").pop() ?? "file"}`;
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   const decide = async (id: string, status: "approved" | "rejected") => {
-    if (!user) return;
+    if (!userId) return;
     setActingId(id);
     const payload = {
       status,
-      reviewed_by: user.id,
+      reviewed_by: userId,
       reviewed_at: new Date().toISOString(),
       admin_notes: notes[id]?.trim() || null,
       rejection_reason: status === "rejected" ? rejectReason[id]?.trim() || null : null,
     };
 
-    const { error } = await supabase.from("verification_requests").update(payload).eq("id", id);
-
-    setActingId(null);
-
-    if (error) {
-      toast({ title: "Update failed", description: error.message, variant: "destructive" });
-      return;
+    try {
+      await restPatchJson(`/verification_requests/${id}`, payload);
+      toast({
+        title: status === "approved" ? "Approved" : "Rejected",
+        description: "Verification request updated.",
+      });
+      void load();
+    } catch (e) {
+      toast({ title: "Update failed", description: e instanceof Error ? e.message : "Error", variant: "destructive" });
     }
-
-    toast({
-      title: status === "approved" ? "Approved" : "Rejected",
-      description: "Verification request updated.",
-    });
-    void load();
+    setActingId(null);
   };
 
   return (
@@ -152,9 +103,7 @@ export default function AdminDashboard() {
             <span className="font-semibold text-lg">Admin — Verification</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link to="/">
-              <Button variant="ghost">Home</Button>
-            </Link>
+            <Link to="/"><Button variant="ghost">Home</Button></Link>
             <AuthButton />
           </div>
         </div>
@@ -165,8 +114,7 @@ export default function AdminDashboard() {
           <CardHeader>
             <CardTitle>Pending verification requests</CardTitle>
             <CardDescription>
-              Review documents (private storage; only admins and the owner can access). Approve or reject
-              each submission.
+              Review documents and approve or reject each submission.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -193,63 +141,38 @@ export default function AdminDashboard() {
                 <CardContent className="space-y-4">
                   <div className="flex flex-wrap gap-2">
                     {r.minority_document_path && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => void downloadDoc(r.minority_document_path, "minority")}
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Minority document
+                      <Button type="button" variant="outline" size="sm"
+                        onClick={() => void downloadDoc(r.minority_document_path, "minority")}>
+                        <Download className="h-4 w-4 mr-2" />Minority document
                       </Button>
                     )}
                     {r.howard_document_path && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => void downloadDoc(r.howard_document_path, "howard")}
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Howard document
+                      <Button type="button" variant="outline" size="sm"
+                        onClick={() => void downloadDoc(r.howard_document_path, "howard")}>
+                        <Download className="h-4 w-4 mr-2" />Howard document
                       </Button>
                     )}
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor={`notes-${r.id}`}>Admin notes (optional)</Label>
-                    <Textarea
-                      id={`notes-${r.id}`}
-                      value={notes[r.id] ?? ""}
+                    <Textarea id={`notes-${r.id}`} value={notes[r.id] ?? ""}
                       onChange={(e) => setNotes((prev) => ({ ...prev, [r.id]: e.target.value }))}
-                      placeholder="Internal notes"
-                      rows={2}
-                    />
+                      placeholder="Internal notes" rows={2} />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor={`reject-${r.id}`}>Rejection reason (optional; use when rejecting)</Label>
-                    <Textarea
-                      id={`reject-${r.id}`}
-                      value={rejectReason[r.id] ?? ""}
+                    <Label htmlFor={`reject-${r.id}`}>Rejection reason (optional)</Label>
+                    <Textarea id={`reject-${r.id}`} value={rejectReason[r.id] ?? ""}
                       onChange={(e) => setRejectReason((prev) => ({ ...prev, [r.id]: e.target.value }))}
-                      placeholder="Reason for rejection"
-                      rows={2}
-                    />
+                      placeholder="Reason for rejection" rows={2} />
                   </div>
 
                   <div className="flex gap-2 pt-2">
-                    <Button
-                      onClick={() => void decide(r.id, "approved")}
-                      disabled={actingId === r.id}
-                    >
+                    <Button onClick={() => void decide(r.id, "approved")} disabled={actingId === r.id}>
                       {actingId === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Approve"}
                     </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={() => void decide(r.id, "rejected")}
-                      disabled={actingId === r.id}
-                    >
+                    <Button variant="destructive" onClick={() => void decide(r.id, "rejected")} disabled={actingId === r.id}>
                       Reject
                     </Button>
                   </div>

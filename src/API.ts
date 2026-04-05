@@ -126,11 +126,13 @@ export type BusinessProfile = {
   address?: string | null,
   phone?: string | null,
   website?: string | null,
+  hours?: string | null,
   price_level?: number | null,
   languages?: Array< string | null > | null,
   is_minority_owned?: boolean | null,
   is_howard_affiliated?: boolean | null,
   verification_status?: VerificationStatus | null,
+  logo_url?: string | null,
   reviews?: ModelReviewConnection | null,
   createdAt: string,
   updatedAt: string,
@@ -245,11 +247,13 @@ export type CreateBusinessProfileInput = {
   address?: string | null,
   phone?: string | null,
   website?: string | null,
+  hours?: string | null,
   price_level?: number | null,
   languages?: Array< string | null > | null,
   is_minority_owned?: boolean | null,
   is_howard_affiliated?: boolean | null,
   verification_status?: VerificationStatus | null,
+  logo_url?: string | null,
 };
 
 export type ModelBusinessProfileConditionInput = {
@@ -260,11 +264,13 @@ export type ModelBusinessProfileConditionInput = {
   address?: ModelStringInput | null,
   phone?: ModelStringInput | null,
   website?: ModelStringInput | null,
+  hours?: ModelStringInput | null,
   price_level?: ModelIntInput | null,
   languages?: ModelStringInput | null,
   is_minority_owned?: ModelBooleanInput | null,
   is_howard_affiliated?: ModelBooleanInput | null,
   verification_status?: ModelVerificationStatusInput | null,
+  logo_url?: ModelStringInput | null,
   and?: Array< ModelBusinessProfileConditionInput | null > | null,
   or?: Array< ModelBusinessProfileConditionInput | null > | null,
   not?: ModelBusinessProfileConditionInput | null,
@@ -306,11 +312,13 @@ export type UpdateBusinessProfileInput = {
   address?: string | null,
   phone?: string | null,
   website?: string | null,
+  hours?: string | null,
   price_level?: number | null,
   languages?: Array< string | null > | null,
   is_minority_owned?: boolean | null,
   is_howard_affiliated?: boolean | null,
   verification_status?: VerificationStatus | null,
+  logo_url?: string | null,
 };
 
 export type DeleteBusinessProfileInput = {
@@ -411,34 +419,6 @@ export type ModelUserRoleFilterInput = {
   owner?: ModelStringInput | null,
 };
 
-export type ModelBusinessProfileFilterInput = {
-  id?: ModelIDInput | null,
-  profileID?: ModelIDInput | null,
-  business_name?: ModelStringInput | null,
-  category?: ModelStringInput | null,
-  description?: ModelStringInput | null,
-  address?: ModelStringInput | null,
-  phone?: ModelStringInput | null,
-  website?: ModelStringInput | null,
-  price_level?: ModelIntInput | null,
-  languages?: ModelStringInput | null,
-  is_minority_owned?: ModelBooleanInput | null,
-  is_howard_affiliated?: ModelBooleanInput | null,
-  verification_status?: ModelVerificationStatusInput | null,
-  createdAt?: ModelStringInput | null,
-  updatedAt?: ModelStringInput | null,
-  and?: Array< ModelBusinessProfileFilterInput | null > | null,
-  or?: Array< ModelBusinessProfileFilterInput | null > | null,
-  not?: ModelBusinessProfileFilterInput | null,
-  owner?: ModelStringInput | null,
-};
-
-export type ModelBusinessProfileConnection = {
-  __typename: "ModelBusinessProfileConnection",
-  items:  Array<BusinessProfile | null >,
-  nextToken?: string | null,
-};
-
 export enum ModelSortDirection {
   ASC = "ASC",
   DESC = "DESC",
@@ -461,6 +441,36 @@ export type ModelProfileFilterInput = {
 export type ModelProfileConnection = {
   __typename: "ModelProfileConnection",
   items:  Array<Profile | null >,
+  nextToken?: string | null,
+};
+
+export type ModelBusinessProfileFilterInput = {
+  id?: ModelIDInput | null,
+  profileID?: ModelIDInput | null,
+  business_name?: ModelStringInput | null,
+  category?: ModelStringInput | null,
+  description?: ModelStringInput | null,
+  address?: ModelStringInput | null,
+  phone?: ModelStringInput | null,
+  website?: ModelStringInput | null,
+  hours?: ModelStringInput | null,
+  price_level?: ModelIntInput | null,
+  languages?: ModelStringInput | null,
+  is_minority_owned?: ModelBooleanInput | null,
+  is_howard_affiliated?: ModelBooleanInput | null,
+  verification_status?: ModelVerificationStatusInput | null,
+  logo_url?: ModelStringInput | null,
+  createdAt?: ModelStringInput | null,
+  updatedAt?: ModelStringInput | null,
+  and?: Array< ModelBusinessProfileFilterInput | null > | null,
+  or?: Array< ModelBusinessProfileFilterInput | null > | null,
+  not?: ModelBusinessProfileFilterInput | null,
+  owner?: ModelStringInput | null,
+};
+
+export type ModelBusinessProfileConnection = {
+  __typename: "ModelBusinessProfileConnection",
+  items:  Array<BusinessProfile | null >,
   nextToken?: string | null,
 };
 
@@ -534,6 +544,18 @@ export type ModelSubscriptionStringInput = {
   notIn?: Array< string | null > | null,
 };
 
+export type ModelSubscriptionProfileFilterInput = {
+  id?: ModelSubscriptionIDInput | null,
+  full_name?: ModelSubscriptionStringInput | null,
+  avatar_url?: ModelSubscriptionStringInput | null,
+  createdAt?: ModelSubscriptionStringInput | null,
+  updatedAt?: ModelSubscriptionStringInput | null,
+  and?: Array< ModelSubscriptionProfileFilterInput | null > | null,
+  or?: Array< ModelSubscriptionProfileFilterInput | null > | null,
+  profileBusinessProfileId?: ModelSubscriptionIDInput | null,
+  owner?: ModelStringInput | null,
+};
+
 export type ModelSubscriptionBusinessProfileFilterInput = {
   id?: ModelSubscriptionIDInput | null,
   profileID?: ModelSubscriptionIDInput | null,
@@ -543,11 +565,13 @@ export type ModelSubscriptionBusinessProfileFilterInput = {
   address?: ModelSubscriptionStringInput | null,
   phone?: ModelSubscriptionStringInput | null,
   website?: ModelSubscriptionStringInput | null,
+  hours?: ModelSubscriptionStringInput | null,
   price_level?: ModelSubscriptionIntInput | null,
   languages?: ModelSubscriptionStringInput | null,
   is_minority_owned?: ModelSubscriptionBooleanInput | null,
   is_howard_affiliated?: ModelSubscriptionBooleanInput | null,
   verification_status?: ModelSubscriptionStringInput | null,
+  logo_url?: ModelSubscriptionStringInput | null,
   createdAt?: ModelSubscriptionStringInput | null,
   updatedAt?: ModelSubscriptionStringInput | null,
   and?: Array< ModelSubscriptionBusinessProfileFilterInput | null > | null,
@@ -570,18 +594,6 @@ export type ModelSubscriptionIntInput = {
 export type ModelSubscriptionBooleanInput = {
   ne?: boolean | null,
   eq?: boolean | null,
-};
-
-export type ModelSubscriptionProfileFilterInput = {
-  id?: ModelSubscriptionIDInput | null,
-  full_name?: ModelSubscriptionStringInput | null,
-  avatar_url?: ModelSubscriptionStringInput | null,
-  createdAt?: ModelSubscriptionStringInput | null,
-  updatedAt?: ModelSubscriptionStringInput | null,
-  and?: Array< ModelSubscriptionProfileFilterInput | null > | null,
-  or?: Array< ModelSubscriptionProfileFilterInput | null > | null,
-  profileBusinessProfileId?: ModelSubscriptionIDInput | null,
-  owner?: ModelStringInput | null,
 };
 
 export type ModelSubscriptionReviewFilterInput = {
@@ -636,11 +648,13 @@ export type CreateProfileMutation = {
       address?: string | null,
       phone?: string | null,
       website?: string | null,
+      hours?: string | null,
       price_level?: number | null,
       languages?: Array< string | null > | null,
       is_minority_owned?: boolean | null,
       is_howard_affiliated?: boolean | null,
       verification_status?: VerificationStatus | null,
+      logo_url?: string | null,
       createdAt: string,
       updatedAt: string,
       owner?: string | null,
@@ -685,11 +699,13 @@ export type UpdateProfileMutation = {
       address?: string | null,
       phone?: string | null,
       website?: string | null,
+      hours?: string | null,
       price_level?: number | null,
       languages?: Array< string | null > | null,
       is_minority_owned?: boolean | null,
       is_howard_affiliated?: boolean | null,
       verification_status?: VerificationStatus | null,
+      logo_url?: string | null,
       createdAt: string,
       updatedAt: string,
       owner?: string | null,
@@ -734,11 +750,13 @@ export type DeleteProfileMutation = {
       address?: string | null,
       phone?: string | null,
       website?: string | null,
+      hours?: string | null,
       price_level?: number | null,
       languages?: Array< string | null > | null,
       is_minority_owned?: boolean | null,
       is_howard_affiliated?: boolean | null,
       verification_status?: VerificationStatus | null,
+      logo_url?: string | null,
       createdAt: string,
       updatedAt: string,
       owner?: string | null,
@@ -865,11 +883,13 @@ export type CreateBusinessProfileMutation = {
     address?: string | null,
     phone?: string | null,
     website?: string | null,
+    hours?: string | null,
     price_level?: number | null,
     languages?: Array< string | null > | null,
     is_minority_owned?: boolean | null,
     is_howard_affiliated?: boolean | null,
     verification_status?: VerificationStatus | null,
+    logo_url?: string | null,
     reviews?:  {
       __typename: "ModelReviewConnection",
       nextToken?: string | null,
@@ -906,11 +926,13 @@ export type UpdateBusinessProfileMutation = {
     address?: string | null,
     phone?: string | null,
     website?: string | null,
+    hours?: string | null,
     price_level?: number | null,
     languages?: Array< string | null > | null,
     is_minority_owned?: boolean | null,
     is_howard_affiliated?: boolean | null,
     verification_status?: VerificationStatus | null,
+    logo_url?: string | null,
     reviews?:  {
       __typename: "ModelReviewConnection",
       nextToken?: string | null,
@@ -947,11 +969,13 @@ export type DeleteBusinessProfileMutation = {
     address?: string | null,
     phone?: string | null,
     website?: string | null,
+    hours?: string | null,
     price_level?: number | null,
     languages?: Array< string | null > | null,
     is_minority_owned?: boolean | null,
     is_howard_affiliated?: boolean | null,
     verification_status?: VerificationStatus | null,
+    logo_url?: string | null,
     reviews?:  {
       __typename: "ModelReviewConnection",
       nextToken?: string | null,
@@ -995,11 +1019,13 @@ export type CreateReviewMutation = {
       address?: string | null,
       phone?: string | null,
       website?: string | null,
+      hours?: string | null,
       price_level?: number | null,
       languages?: Array< string | null > | null,
       is_minority_owned?: boolean | null,
       is_howard_affiliated?: boolean | null,
       verification_status?: VerificationStatus | null,
+      logo_url?: string | null,
       createdAt: string,
       updatedAt: string,
       owner?: string | null,
@@ -1049,11 +1075,13 @@ export type UpdateReviewMutation = {
       address?: string | null,
       phone?: string | null,
       website?: string | null,
+      hours?: string | null,
       price_level?: number | null,
       languages?: Array< string | null > | null,
       is_minority_owned?: boolean | null,
       is_howard_affiliated?: boolean | null,
       verification_status?: VerificationStatus | null,
+      logo_url?: string | null,
       createdAt: string,
       updatedAt: string,
       owner?: string | null,
@@ -1103,11 +1131,13 @@ export type DeleteReviewMutation = {
       address?: string | null,
       phone?: string | null,
       website?: string | null,
+      hours?: string | null,
       price_level?: number | null,
       languages?: Array< string | null > | null,
       is_minority_owned?: boolean | null,
       is_howard_affiliated?: boolean | null,
       verification_status?: VerificationStatus | null,
+      logo_url?: string | null,
       createdAt: string,
       updatedAt: string,
       owner?: string | null,
@@ -1295,78 +1325,6 @@ export type ListUserRolesQuery = {
   } | null,
 };
 
-export type GetBusinessProfileQueryVariables = {
-  id: string,
-};
-
-export type GetBusinessProfileQuery = {
-  getBusinessProfile?:  {
-    __typename: "BusinessProfile",
-    id: string,
-    profileID: string,
-    profile?:  {
-      __typename: "Profile",
-      id: string,
-      full_name: string,
-      avatar_url?: string | null,
-      createdAt: string,
-      updatedAt: string,
-      profileBusinessProfileId?: string | null,
-      owner?: string | null,
-    } | null,
-    business_name: string,
-    category: string,
-    description?: string | null,
-    address?: string | null,
-    phone?: string | null,
-    website?: string | null,
-    price_level?: number | null,
-    languages?: Array< string | null > | null,
-    is_minority_owned?: boolean | null,
-    is_howard_affiliated?: boolean | null,
-    verification_status?: VerificationStatus | null,
-    reviews?:  {
-      __typename: "ModelReviewConnection",
-      nextToken?: string | null,
-    } | null,
-    createdAt: string,
-    updatedAt: string,
-    owner?: string | null,
-  } | null,
-};
-
-export type ListBusinessProfilesQueryVariables = {
-  filter?: ModelBusinessProfileFilterInput | null,
-  limit?: number | null,
-  nextToken?: string | null,
-};
-
-export type ListBusinessProfilesQuery = {
-  listBusinessProfiles?:  {
-    __typename: "ModelBusinessProfileConnection",
-    items:  Array< {
-      __typename: "BusinessProfile",
-      id: string,
-      profileID: string,
-      business_name: string,
-      category: string,
-      description?: string | null,
-      address?: string | null,
-      phone?: string | null,
-      website?: string | null,
-      price_level?: number | null,
-      languages?: Array< string | null > | null,
-      is_minority_owned?: boolean | null,
-      is_howard_affiliated?: boolean | null,
-      verification_status?: VerificationStatus | null,
-      createdAt: string,
-      updatedAt: string,
-      owner?: string | null,
-    } | null >,
-    nextToken?: string | null,
-  } | null,
-};
-
 export type UserRolesByProfileIDQueryVariables = {
   profileID: string,
   sortDirection?: ModelSortDirection | null,
@@ -1415,11 +1373,13 @@ export type GetProfileQuery = {
       address?: string | null,
       phone?: string | null,
       website?: string | null,
+      hours?: string | null,
       price_level?: number | null,
       languages?: Array< string | null > | null,
       is_minority_owned?: boolean | null,
       is_howard_affiliated?: boolean | null,
       verification_status?: VerificationStatus | null,
+      logo_url?: string | null,
       createdAt: string,
       updatedAt: string,
       owner?: string | null,
@@ -1462,6 +1422,154 @@ export type ListProfilesQuery = {
   } | null,
 };
 
+export type GetBusinessProfileQueryVariables = {
+  id: string,
+};
+
+export type GetBusinessProfileQuery = {
+  getBusinessProfile?:  {
+    __typename: "BusinessProfile",
+    id: string,
+    profileID: string,
+    profile?:  {
+      __typename: "Profile",
+      id: string,
+      full_name: string,
+      avatar_url?: string | null,
+      createdAt: string,
+      updatedAt: string,
+      profileBusinessProfileId?: string | null,
+      owner?: string | null,
+    } | null,
+    business_name: string,
+    category: string,
+    description?: string | null,
+    address?: string | null,
+    phone?: string | null,
+    website?: string | null,
+    hours?: string | null,
+    price_level?: number | null,
+    languages?: Array< string | null > | null,
+    is_minority_owned?: boolean | null,
+    is_howard_affiliated?: boolean | null,
+    verification_status?: VerificationStatus | null,
+    logo_url?: string | null,
+    reviews?:  {
+      __typename: "ModelReviewConnection",
+      nextToken?: string | null,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+    owner?: string | null,
+  } | null,
+};
+
+export type ListBusinessProfilesQueryVariables = {
+  filter?: ModelBusinessProfileFilterInput | null,
+  limit?: number | null,
+  nextToken?: string | null,
+};
+
+export type ListBusinessProfilesQuery = {
+  listBusinessProfiles?:  {
+    __typename: "ModelBusinessProfileConnection",
+    items:  Array< {
+      __typename: "BusinessProfile",
+      id: string,
+      profileID: string,
+      business_name: string,
+      category: string,
+      description?: string | null,
+      address?: string | null,
+      phone?: string | null,
+      website?: string | null,
+      hours?: string | null,
+      price_level?: number | null,
+      languages?: Array< string | null > | null,
+      is_minority_owned?: boolean | null,
+      is_howard_affiliated?: boolean | null,
+      verification_status?: VerificationStatus | null,
+      logo_url?: string | null,
+      createdAt: string,
+      updatedAt: string,
+      owner?: string | null,
+    } | null >,
+    nextToken?: string | null,
+  } | null,
+};
+
+export type BusinessProfilesByCategoryQueryVariables = {
+  category: string,
+  sortDirection?: ModelSortDirection | null,
+  filter?: ModelBusinessProfileFilterInput | null,
+  limit?: number | null,
+  nextToken?: string | null,
+};
+
+export type BusinessProfilesByCategoryQuery = {
+  businessProfilesByCategory?:  {
+    __typename: "ModelBusinessProfileConnection",
+    items:  Array< {
+      __typename: "BusinessProfile",
+      id: string,
+      profileID: string,
+      business_name: string,
+      category: string,
+      description?: string | null,
+      address?: string | null,
+      phone?: string | null,
+      website?: string | null,
+      hours?: string | null,
+      price_level?: number | null,
+      languages?: Array< string | null > | null,
+      is_minority_owned?: boolean | null,
+      is_howard_affiliated?: boolean | null,
+      verification_status?: VerificationStatus | null,
+      logo_url?: string | null,
+      createdAt: string,
+      updatedAt: string,
+      owner?: string | null,
+    } | null >,
+    nextToken?: string | null,
+  } | null,
+};
+
+export type BusinessProfilesByAddressQueryVariables = {
+  address: string,
+  sortDirection?: ModelSortDirection | null,
+  filter?: ModelBusinessProfileFilterInput | null,
+  limit?: number | null,
+  nextToken?: string | null,
+};
+
+export type BusinessProfilesByAddressQuery = {
+  businessProfilesByAddress?:  {
+    __typename: "ModelBusinessProfileConnection",
+    items:  Array< {
+      __typename: "BusinessProfile",
+      id: string,
+      profileID: string,
+      business_name: string,
+      category: string,
+      description?: string | null,
+      address?: string | null,
+      phone?: string | null,
+      website?: string | null,
+      hours?: string | null,
+      price_level?: number | null,
+      languages?: Array< string | null > | null,
+      is_minority_owned?: boolean | null,
+      is_howard_affiliated?: boolean | null,
+      verification_status?: VerificationStatus | null,
+      logo_url?: string | null,
+      createdAt: string,
+      updatedAt: string,
+      owner?: string | null,
+    } | null >,
+    nextToken?: string | null,
+  } | null,
+};
+
 export type GetReviewQueryVariables = {
   id: string,
 };
@@ -1494,11 +1602,13 @@ export type GetReviewQuery = {
       address?: string | null,
       phone?: string | null,
       website?: string | null,
+      hours?: string | null,
       price_level?: number | null,
       languages?: Array< string | null > | null,
       is_minority_owned?: boolean | null,
       is_howard_affiliated?: boolean | null,
       verification_status?: VerificationStatus | null,
+      logo_url?: string | null,
       createdAt: string,
       updatedAt: string,
       owner?: string | null,
@@ -1791,129 +1901,6 @@ export type OnDeleteUserRoleSubscription = {
   } | null,
 };
 
-export type OnCreateBusinessProfileSubscriptionVariables = {
-  filter?: ModelSubscriptionBusinessProfileFilterInput | null,
-  owner?: string | null,
-};
-
-export type OnCreateBusinessProfileSubscription = {
-  onCreateBusinessProfile?:  {
-    __typename: "BusinessProfile",
-    id: string,
-    profileID: string,
-    profile?:  {
-      __typename: "Profile",
-      id: string,
-      full_name: string,
-      avatar_url?: string | null,
-      createdAt: string,
-      updatedAt: string,
-      profileBusinessProfileId?: string | null,
-      owner?: string | null,
-    } | null,
-    business_name: string,
-    category: string,
-    description?: string | null,
-    address?: string | null,
-    phone?: string | null,
-    website?: string | null,
-    price_level?: number | null,
-    languages?: Array< string | null > | null,
-    is_minority_owned?: boolean | null,
-    is_howard_affiliated?: boolean | null,
-    verification_status?: VerificationStatus | null,
-    reviews?:  {
-      __typename: "ModelReviewConnection",
-      nextToken?: string | null,
-    } | null,
-    createdAt: string,
-    updatedAt: string,
-    owner?: string | null,
-  } | null,
-};
-
-export type OnUpdateBusinessProfileSubscriptionVariables = {
-  filter?: ModelSubscriptionBusinessProfileFilterInput | null,
-  owner?: string | null,
-};
-
-export type OnUpdateBusinessProfileSubscription = {
-  onUpdateBusinessProfile?:  {
-    __typename: "BusinessProfile",
-    id: string,
-    profileID: string,
-    profile?:  {
-      __typename: "Profile",
-      id: string,
-      full_name: string,
-      avatar_url?: string | null,
-      createdAt: string,
-      updatedAt: string,
-      profileBusinessProfileId?: string | null,
-      owner?: string | null,
-    } | null,
-    business_name: string,
-    category: string,
-    description?: string | null,
-    address?: string | null,
-    phone?: string | null,
-    website?: string | null,
-    price_level?: number | null,
-    languages?: Array< string | null > | null,
-    is_minority_owned?: boolean | null,
-    is_howard_affiliated?: boolean | null,
-    verification_status?: VerificationStatus | null,
-    reviews?:  {
-      __typename: "ModelReviewConnection",
-      nextToken?: string | null,
-    } | null,
-    createdAt: string,
-    updatedAt: string,
-    owner?: string | null,
-  } | null,
-};
-
-export type OnDeleteBusinessProfileSubscriptionVariables = {
-  filter?: ModelSubscriptionBusinessProfileFilterInput | null,
-  owner?: string | null,
-};
-
-export type OnDeleteBusinessProfileSubscription = {
-  onDeleteBusinessProfile?:  {
-    __typename: "BusinessProfile",
-    id: string,
-    profileID: string,
-    profile?:  {
-      __typename: "Profile",
-      id: string,
-      full_name: string,
-      avatar_url?: string | null,
-      createdAt: string,
-      updatedAt: string,
-      profileBusinessProfileId?: string | null,
-      owner?: string | null,
-    } | null,
-    business_name: string,
-    category: string,
-    description?: string | null,
-    address?: string | null,
-    phone?: string | null,
-    website?: string | null,
-    price_level?: number | null,
-    languages?: Array< string | null > | null,
-    is_minority_owned?: boolean | null,
-    is_howard_affiliated?: boolean | null,
-    verification_status?: VerificationStatus | null,
-    reviews?:  {
-      __typename: "ModelReviewConnection",
-      nextToken?: string | null,
-    } | null,
-    createdAt: string,
-    updatedAt: string,
-    owner?: string | null,
-  } | null,
-};
-
 export type OnCreateProfileSubscriptionVariables = {
   filter?: ModelSubscriptionProfileFilterInput | null,
   owner?: string | null,
@@ -1939,11 +1926,13 @@ export type OnCreateProfileSubscription = {
       address?: string | null,
       phone?: string | null,
       website?: string | null,
+      hours?: string | null,
       price_level?: number | null,
       languages?: Array< string | null > | null,
       is_minority_owned?: boolean | null,
       is_howard_affiliated?: boolean | null,
       verification_status?: VerificationStatus | null,
+      logo_url?: string | null,
       createdAt: string,
       updatedAt: string,
       owner?: string | null,
@@ -1988,11 +1977,13 @@ export type OnUpdateProfileSubscription = {
       address?: string | null,
       phone?: string | null,
       website?: string | null,
+      hours?: string | null,
       price_level?: number | null,
       languages?: Array< string | null > | null,
       is_minority_owned?: boolean | null,
       is_howard_affiliated?: boolean | null,
       verification_status?: VerificationStatus | null,
+      logo_url?: string | null,
       createdAt: string,
       updatedAt: string,
       owner?: string | null,
@@ -2037,11 +2028,13 @@ export type OnDeleteProfileSubscription = {
       address?: string | null,
       phone?: string | null,
       website?: string | null,
+      hours?: string | null,
       price_level?: number | null,
       languages?: Array< string | null > | null,
       is_minority_owned?: boolean | null,
       is_howard_affiliated?: boolean | null,
       verification_status?: VerificationStatus | null,
+      logo_url?: string | null,
       createdAt: string,
       updatedAt: string,
       owner?: string | null,
@@ -2057,6 +2050,135 @@ export type OnDeleteProfileSubscription = {
     createdAt: string,
     updatedAt: string,
     profileBusinessProfileId?: string | null,
+    owner?: string | null,
+  } | null,
+};
+
+export type OnCreateBusinessProfileSubscriptionVariables = {
+  filter?: ModelSubscriptionBusinessProfileFilterInput | null,
+  owner?: string | null,
+};
+
+export type OnCreateBusinessProfileSubscription = {
+  onCreateBusinessProfile?:  {
+    __typename: "BusinessProfile",
+    id: string,
+    profileID: string,
+    profile?:  {
+      __typename: "Profile",
+      id: string,
+      full_name: string,
+      avatar_url?: string | null,
+      createdAt: string,
+      updatedAt: string,
+      profileBusinessProfileId?: string | null,
+      owner?: string | null,
+    } | null,
+    business_name: string,
+    category: string,
+    description?: string | null,
+    address?: string | null,
+    phone?: string | null,
+    website?: string | null,
+    hours?: string | null,
+    price_level?: number | null,
+    languages?: Array< string | null > | null,
+    is_minority_owned?: boolean | null,
+    is_howard_affiliated?: boolean | null,
+    verification_status?: VerificationStatus | null,
+    logo_url?: string | null,
+    reviews?:  {
+      __typename: "ModelReviewConnection",
+      nextToken?: string | null,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+    owner?: string | null,
+  } | null,
+};
+
+export type OnUpdateBusinessProfileSubscriptionVariables = {
+  filter?: ModelSubscriptionBusinessProfileFilterInput | null,
+  owner?: string | null,
+};
+
+export type OnUpdateBusinessProfileSubscription = {
+  onUpdateBusinessProfile?:  {
+    __typename: "BusinessProfile",
+    id: string,
+    profileID: string,
+    profile?:  {
+      __typename: "Profile",
+      id: string,
+      full_name: string,
+      avatar_url?: string | null,
+      createdAt: string,
+      updatedAt: string,
+      profileBusinessProfileId?: string | null,
+      owner?: string | null,
+    } | null,
+    business_name: string,
+    category: string,
+    description?: string | null,
+    address?: string | null,
+    phone?: string | null,
+    website?: string | null,
+    hours?: string | null,
+    price_level?: number | null,
+    languages?: Array< string | null > | null,
+    is_minority_owned?: boolean | null,
+    is_howard_affiliated?: boolean | null,
+    verification_status?: VerificationStatus | null,
+    logo_url?: string | null,
+    reviews?:  {
+      __typename: "ModelReviewConnection",
+      nextToken?: string | null,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+    owner?: string | null,
+  } | null,
+};
+
+export type OnDeleteBusinessProfileSubscriptionVariables = {
+  filter?: ModelSubscriptionBusinessProfileFilterInput | null,
+  owner?: string | null,
+};
+
+export type OnDeleteBusinessProfileSubscription = {
+  onDeleteBusinessProfile?:  {
+    __typename: "BusinessProfile",
+    id: string,
+    profileID: string,
+    profile?:  {
+      __typename: "Profile",
+      id: string,
+      full_name: string,
+      avatar_url?: string | null,
+      createdAt: string,
+      updatedAt: string,
+      profileBusinessProfileId?: string | null,
+      owner?: string | null,
+    } | null,
+    business_name: string,
+    category: string,
+    description?: string | null,
+    address?: string | null,
+    phone?: string | null,
+    website?: string | null,
+    hours?: string | null,
+    price_level?: number | null,
+    languages?: Array< string | null > | null,
+    is_minority_owned?: boolean | null,
+    is_howard_affiliated?: boolean | null,
+    verification_status?: VerificationStatus | null,
+    logo_url?: string | null,
+    reviews?:  {
+      __typename: "ModelReviewConnection",
+      nextToken?: string | null,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
     owner?: string | null,
   } | null,
 };
@@ -2094,11 +2216,13 @@ export type OnCreateReviewSubscription = {
       address?: string | null,
       phone?: string | null,
       website?: string | null,
+      hours?: string | null,
       price_level?: number | null,
       languages?: Array< string | null > | null,
       is_minority_owned?: boolean | null,
       is_howard_affiliated?: boolean | null,
       verification_status?: VerificationStatus | null,
+      logo_url?: string | null,
       createdAt: string,
       updatedAt: string,
       owner?: string | null,
@@ -2148,11 +2272,13 @@ export type OnUpdateReviewSubscription = {
       address?: string | null,
       phone?: string | null,
       website?: string | null,
+      hours?: string | null,
       price_level?: number | null,
       languages?: Array< string | null > | null,
       is_minority_owned?: boolean | null,
       is_howard_affiliated?: boolean | null,
       verification_status?: VerificationStatus | null,
+      logo_url?: string | null,
       createdAt: string,
       updatedAt: string,
       owner?: string | null,
@@ -2202,11 +2328,13 @@ export type OnDeleteReviewSubscription = {
       address?: string | null,
       phone?: string | null,
       website?: string | null,
+      hours?: string | null,
       price_level?: number | null,
       languages?: Array< string | null > | null,
       is_minority_owned?: boolean | null,
       is_howard_affiliated?: boolean | null,
       verification_status?: VerificationStatus | null,
+      logo_url?: string | null,
       createdAt: string,
       updatedAt: string,
       owner?: string | null,

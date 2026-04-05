@@ -68,6 +68,7 @@ export default function ManageBusiness() {
       address: row.address ?? "",
       phone: row.phone ?? "",
       website: row.website ?? "",
+      hours: row.hours ?? "",
       price_level: row.price_level,
       languages: (row.languages ?? ["English"]).join(", "),
       is_minority_owned: row.is_minority_owned,
@@ -85,6 +86,7 @@ export default function ManageBusiness() {
       address: "",
       phone: "",
       website: "",
+      hours: "",
       price_level: 2,
       languages: "English",
       is_minority_owned: false,
@@ -129,6 +131,7 @@ export default function ManageBusiness() {
         address: values.address?.trim() || undefined,
         phone: values.phone?.trim() || undefined,
         website: values.website?.trim() || undefined,
+        hours: values.hours?.trim() || undefined,
         price_level: values.price_level,
         languages: values.languages
           .split(",")
@@ -140,7 +143,7 @@ export default function ManageBusiness() {
       });
     },
     onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ["business-profile", id] });
+      queryClient.setQueryData(["business-profile", id], result.row);
       queryClient.invalidateQueries({ queryKey: ["public-businesses"] });
       if (result.logoUploadFailed) {
         toast({
@@ -157,6 +160,7 @@ export default function ManageBusiness() {
       });
     },
     onError: (e: Error) => {
+      console.error("[ManageBusiness] update error:", e);
       toast({ title: "Update failed", description: e.message, variant: "destructive" });
     },
   });
@@ -271,7 +275,7 @@ export default function ManageBusiness() {
                   onSubmit={form.handleSubmit((v) => updateMutation.mutate(v))}
                   className="space-y-6"
                 >
-                  <BusinessListingFormFields control={form.control} />
+                  <BusinessListingFormFields control={form.control} currentLogoUrl={row.logo_url} />
                   <Button type="submit" disabled={updateMutation.isPending || isDeleted}>
                     {updateMutation.isPending ? (
                       <>

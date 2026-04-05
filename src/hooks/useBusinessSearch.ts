@@ -62,15 +62,12 @@ async function fetchBusinesses({
     businesses: Business[];
     totalCount: number;
 }> {
-    // Build Amplify filter object
     const filter: any = {};
     if (filters.verified) filter.verification_status = { eq: "verified" };
     if (filters.howardAffiliated) filter.is_howard_affiliated = { eq: true };
     if (filters.minorityOwned) filter.is_minority_owned = { eq: true };
     if (filters.categories.length > 0) filter.category = { in: filters.categories };
     if (filters.maxPriceLevel < 4) filter.price_level = { lte: filters.maxPriceLevel };
-    // If you have a rating field in your schema, add it here
-    // if (filters.minRating > 0) filter.rating = { gte: filters.minRating };
     if (query.trim()) {
         filter.or = [
             { business_name: { contains: query } },
@@ -80,18 +77,17 @@ async function fetchBusinesses({
         ];
     }
 
-    const variables = {
-        filter,
-        limit: pageSize,
-        // For real cursor-based pagination, handle nextToken here
-    };
+    const variables: any = { limit: pageSize };
+    if (Object.keys(filter).length > 0) variables.filter = filter;
 
     try {
         const client = generateClient();
         const response: any = await client.graphql({
             query: listBusinessProfiles,
-            variables
+            variables,
+            authMode: "apiKey",
         });
+        console.log("[useBusinessSearch] GraphQL response:", response);
         const items = response.data.listBusinessProfiles.items;
 
         // Map to Business type
@@ -110,7 +106,7 @@ async function fetchBusinesses({
                 id: item.id,
                 name: item.business_name,
                 category: item.category,
-                image: '', // TODO: Map image if available in schema
+                image: item.logo_url || '',
                 rating,
                 reviewCount,
                 priceLevel: item.price_level ?? 1,

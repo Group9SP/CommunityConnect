@@ -1,14 +1,21 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ReviewCard } from "@/components/ReviewCard";
+import { ReviewForm } from "@/components/ReviewForm";
 import AuthButton from "@/components/AuthButton";
-import { Star, MapPin, Phone, Globe, Clock, DollarSign, Languages, Loader2, Pencil } from "lucide-react";
+import { Star, MapPin, Phone, Globe, DollarSign, Languages, Loader2, Pencil } from "lucide-react";
 import coffeeImage from "@/assets/business-coffee.jpg";
 import { fetchBusinessProfileById, type BusinessProfileRow } from "@/integrations/amplify/businessProfiles";
 import { useSession } from "@/features/auth/hooks/useSession";
+import { BusinessLocationHours } from "@/components/BusinessLocationHours";
+import { parseHours, isOpenNow } from "@/lib/businessHours";
+import { reviewsByBusinessID } from "@/graphql/queries";
+import { gqlClient } from "@/integrations/amplify/graphqlClient";
 
 type DetailModel = {
   id: string;
@@ -33,8 +40,7 @@ type DetailModel = {
 function websiteHref(raw: string): string {
   const t = raw.trim();
   if (!t) return "#";
-  if (/^https?:\/\//i.test(t)) return t;
-  return `https://${t}`;
+  return /^https?:\/\//i.test(t) ? t : `https://${t}`;
 }
 
 function mapRowToDetail(row: BusinessProfileRow): DetailModel {
@@ -51,7 +57,7 @@ function mapRowToDetail(row: BusinessProfileRow): DetailModel {
     location: row.address ?? "—",
     phone: row.phone ?? "—",
     website: row.website ?? "",
-    hours: "—",
+    hours: row.hours ?? "—",
     isVerified: row.verification_status === "verified",
     isHowardAffiliated: row.is_howard_affiliated,
     description: row.description ?? "No description yet.",
@@ -77,34 +83,16 @@ const DEMO_BY_ID: Record<string, DetailModel> = {
     isVerified: true,
     isHowardAffiliated: true,
     description:
-      "Elevation Coffee House is a premium coffee destination committed to serving excellence in every cup. Founded by Howard University alumni in 2020, we source our beans ethically and roast them daily in-house. Our mission extends beyond great coffee—we're dedicated to uplifting our community through employment opportunities, education, and creating a welcoming space for all.",
+      "Elevation Coffee House is a premium coffee destination committed to serving excellence in every cup. Founded by Howard University alumni in 2020, we source our beans ethically and roast them daily in-house.",
     amenities: ["WiFi", "Outdoor Seating", "Wheelchair Accessible", "Accepts Credit Cards"],
     source: "demo",
   },
 };
 
-const reviews = [
-  {
-    userName: "Sarah Johnson",
-    rating: 5,
-    date: "2 days ago",
-    comment:
-      "Amazing coffee and even better atmosphere! The staff is incredibly friendly and knowledgeable. Love supporting a Howard-affiliated business that truly cares about quality and community.",
-  },
-  {
-    userName: "Marcus Williams",
-    rating: 5,
-    date: "1 week ago",
-    comment:
-      "Best coffee in DC hands down. The espresso is perfectly balanced and the pastries are fresh daily. Proud to support a Black-owned business doing it right!",
-  },
-  {
-    userName: "Jennifer Lee",
-    rating: 4,
-    date: "2 weeks ago",
-    comment:
-      "Great local spot with delicious coffee and a warm vibe. Sometimes gets busy during morning rush, but worth the wait. Love their commitment to community.",
-  },
+const demoReviews = [
+  { userName: "Sarah Johnson", rating: 5, date: "2 days ago", comment: "Amazing coffee and even better atmosphere! Love supporting a Howard-affiliated business." },
+  { userName: "Marcus Williams", rating: 5, date: "1 week ago", comment: "Best coffee in DC hands down. Proud to support a Black-owned business doing it right!" },
+  { userName: "Jennifer Lee", rating: 4, date: "2 weeks ago", comment: "Great local spot with delicious coffee and a warm vibe." },
 ];
 
 const BusinessDetail = () => {
@@ -124,6 +112,46 @@ const BusinessDetail = () => {
   }, [id, row]);
 
   const isOwner = row && session && row.user_id === session.user.id;
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Fetch reviews for this business
+  const { data: reviewsData, refetch: refetchReviews } = useQuery({
+    queryKey: ["reviews", id],
+    queryFn: async () => {
+      const result = await gqlClient.graphql({
+        query: reviewsByBusinessID,
+        variables: { businessID: id! },
+        authMode: "apiKey",
+      });
+      const items = result.data?.reviewsByBusinessID?.items ?? [];
+
+      // Fetch reviewer names for reviews missing review_name
+      const needsName = items.filter((r: any) => !r.review_name);
+      if (needsName.length > 0) {
+        const profileQuery = /* GraphQL */`
+          query GetProfile($id: ID!) {
+            getProfile(id: $id) { id full_name }
+          }
+        `;
+        await Promise.all(needsName.map(async (r: any) => {
+          try {
+            const p: any = await gqlClient.graphql({
+              query: profileQuery,
+              variables: { id: r.userID },
+              authMode: "apiKey",
+            });
+            r.review_name = p.data?.getProfile?.full_name ?? null;
+          } catch { /* ignore */ }
+        }));
+      }
+      return items;
+    },
+    enabled: !!id,
+  });
+
+  const reviews = (reviewsData ?? []).filter((r: any) => r.moderation_status === "approved");
+  const userReview = session ? reviews.find((r: any) => r.userID === session.user.id) : null;
 
   if (isLoading) {
     return (
@@ -147,56 +175,18 @@ const BusinessDetail = () => {
   const showReviews = business.source === "demo";
   const showAmenities = business.amenities.length > 0;
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  if (!business) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-6">
-        <p className="text-muted-foreground">Business not found or not verified.</p>
-        <Link to="/browse">
-          <Button variant="outline">Back to browse</Button>
-        </Link>
-      </div>
-    );
-  }
-
-  const hero = imageForCategory(business.category);
-  const rating = 4.5;
-  const reviewCount = 0;
-  const priceLevel = business.price_level ?? 2;
-  const langs = business.languages ?? [];
-  const vf: BusinessVerificationFields = {
-    verification_status: business.verification_status,
-    is_minority_owned: business.is_minority_owned,
-    is_howard_affiliated: business.is_howard_affiliated,
-    minority_verified: business.minority_verified ?? false,
-    howard_verified: business.howard_verified ?? false,
-  };
-  const website = business.website?.replace(/^https?:\/\//, "") ?? "";
-
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-card border-b sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link to="/" className="text-2xl font-bold text-primary">
-              Community Connect
-            </Link>
+            <Link to="/" className="text-2xl font-bold text-primary">Community Connect</Link>
             <nav className="flex items-center gap-4">
-              <Link to="/browse">
-                <Button variant="ghost">Browse</Button>
-              </Link>
-              {isOwner && business.source === "database" && (
+              <Link to="/browse"><Button variant="ghost">Browse</Button></Link>
+              {isOwner && (
                 <Button variant="outline" size="sm" asChild>
                   <Link to={`/business/${business.id}/manage`}>
-                    <Pencil className="h-4 w-4 mr-1" />
-                    Manage
+                    <Pencil className="h-4 w-4 mr-1" />Manage
                   </Link>
                 </Button>
               )}
@@ -207,115 +197,74 @@ const BusinessDetail = () => {
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-3 gap-2 h-[400px] mb-8">
-          <div className="col-span-2 rounded-lg overflow-hidden">
-            <img src={business.images[0]} alt={business.name} className="w-full h-full object-cover" />
-          </div>
-          <div className="grid grid-rows-2 gap-2">
-            <div className="rounded-lg overflow-hidden">
-              <img src={business.images[1]} alt={business.name} className="w-full h-full object-cover" />
-            </div>
-            <div className="rounded-lg overflow-hidden">
-              <img src={business.images[2]} alt={business.name} className="w-full h-full object-cover" />
-            </div>
-          </div>
-          <div className="mb-2">
-            <BusinessOpenStatus hours={business.hours} />
-          </div>
-          <div className="flex items-center gap-3 text-sm text-muted-foreground mb-2">
-            <MapPin className="h-4 w-4" /> {business.location}
-            <Phone className="h-4 w-4 ml-4" /> {currentUserId ? business.phone : "(hidden)"}
-            <Globe className="h-4 w-4 ml-4" />
-            <a
-              href={`https://${business.website}`}
-              className="text-primary hover:underline"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => {
-                trackEngagementEvent({
-                  businessID: id || '',
-                  userID: currentUserId || undefined,
-                  type: 'website_click',
-                });
-              }}
-            >
-              {business.website}
-            </a>
-          </div>
-          <div className="text-base leading-relaxed mb-2">{business.description}</div>
-          <div className="flex flex-wrap gap-2 mb-2">
-            {business.amenities.map((amenity) => (
-              <Badge key={amenity} variant="secondary">
-                {amenity}
-              </Badge>
-            ))}
-          </div>
-          <div className="text-xs text-muted-foreground">Hours: {business.hours}</div>
+        {/* Hero image */}
+        <div className="h-[400px] mb-8 rounded-xl overflow-hidden">
+          <img src={business.images[0]} alt={business.name} className="w-full h-full object-cover" />
         </div>
-      </div>
 
-      <div className="container mx-auto px-4 pb-12">
         <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main content */}
           <div className="lg:col-span-2 space-y-6">
             <div>
               <div className="flex gap-2 mb-3 flex-wrap">
                 {business.isVerified && (
-                  <Badge className="bg-[hsl(var(--verified-badge))] text-white">✓ Verified Minority-Owned</Badge>
+                  <Badge className="bg-green-600 text-white">✓ Verified Minority-Owned</Badge>
                 )}
                 {business.isHowardAffiliated && (
-                  <Badge className="bg-accent text-accent-foreground">Howard Affiliated</Badge>
+                  <Badge variant="secondary">Howard Affiliated</Badge>
                 )}
                 {business.source === "database" && !business.isVerified && (
-                  <Badge variant="secondary">Verification pending</Badge>
+                  <Badge variant="outline">Verification pending</Badge>
                 )}
               </div>
               <h1 className="text-4xl font-bold mb-2">{business.name}</h1>
-              <p className="text-xl text-muted-foreground mb-4">{business.category}</p>
+              <p className="text-xl text-muted-foreground mb-2">{business.category}</p>
+
+              {/* Open/closed status with today's hours + link */}
+              {(() => {
+                const hours = parseHours(row?.hours ?? null);
+                if (!hours) return null;
+                const open = isOpenNow(hours);
+                const todayHours = hours[(new Date().getDay() + 6) % 7];
+                return (
+                  <div className="flex items-center gap-2 mb-4">
+                    <Badge className={open ? "bg-green-600 text-white" : "bg-red-500 text-white"}>
+                      {open ? "Open now" : "Closed now"}
+                    </Badge>
+                    {!todayHours.closed && (
+                      <span className="text-sm text-muted-foreground">
+                        {todayHours.open} – {todayHours.close}
+                      </span>
+                    )}
+                    <button
+                      className="text-sm text-primary hover:underline"
+                      onClick={() => document.getElementById("hours-section")?.scrollIntoView({ behavior: "smooth" })}
+                    >
+                      See hours ↓
+                    </button>
+                  </div>
+                );
+              })()}
 
               <div className="flex items-center gap-4 flex-wrap">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`h-5 w-5 ${
-                          i < Math.floor(business.rating) ? "fill-accent text-accent" : "fill-muted text-muted"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="font-semibold">{business.rating > 0 ? business.rating : "—"}</span>
-                  <span className="text-muted-foreground">
-                    {business.reviewCount > 0 ? `(${business.reviewCount} reviews)` : "(no reviews yet)"}
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} className={`h-5 w-5 ${i < Math.floor(reviews.length > 0 ? reviews.reduce((s: number, r: any) => s + r.rating, 0) / reviews.length : 0) ? "fill-yellow-400 text-yellow-400" : "fill-muted text-muted"}`} />
+                  ))}
+                  {reviews.length > 0 && (
+                    <span className="ml-1 font-semibold">
+                      {(reviews.reduce((s: number, r: any) => s + r.rating, 0) / reviews.length).toFixed(1)}
+                    </span>
+                  )}
+                  <span className="text-muted-foreground ml-1">
+                    {reviews.length > 0 ? `(${reviews.length} review${reviews.length !== 1 ? "s" : ""})` : ""}
                   </span>
                 </div>
-
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: priceLevel }).map((_, i) => (
+                <div className="flex items-center gap-0.5">
+                  {Array.from({ length: business.priceLevel }).map((_, i) => (
                     <DollarSign key={i} className="h-4 w-4 text-muted-foreground" />
                   ))}
                 </div>
-                <ReviewStarChart reviews={reviews} />
-              </div>
-              <div>
-                <Button
-                  onClick={() => {
-                    if (userReview) {
-                      const el = document.getElementById(`review-${userReview.id}`);
-                      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-                      setEditingReviewId(userReview.id);
-                      setEditComment(userReview.comment);
-                      setEditRating(userReview.rating);
-                    } else {
-                      const el = document.getElementById("review-form");
-                      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-                    }
-                  }}
-                  variant="default"
-                  className="w-full md:w-auto"
-                >
-                  {userReview ? "Edit Your Review" : "Write a Review"}
-                </Button>
               </div>
             </div>
 
@@ -332,34 +281,117 @@ const BusinessDetail = () => {
                 <div>
                   <h2 className="text-2xl font-semibold mb-4">Amenities</h2>
                   <div className="flex flex-wrap gap-2">
-                    {business.amenities.map((amenity) => (
-                      <Badge key={amenity} variant="secondary">
-                        {amenity}
-                      </Badge>
+                    {business.amenities.map((a) => (
+                      <Badge key={a} variant="secondary">{a}</Badge>
                     ))}
                   </div>
                 </div>
               </>
             )}
 
-            {showReviews && (
-              <>
-                <Separator />
-                <div>
-                  <h2 className="text-2xl font-semibold mb-6">Customer Reviews</h2>
-                  <div className="space-y-4">
-                    {reviews.map((review, index) => (
-                      <ReviewCard key={index} {...review} />
-                    ))}
+            {/* Location & Hours */}
+            <Separator />
+            <div id="hours-section">
+              <BusinessLocationHours address={business.location} hoursRaw={row?.hours ?? null} />
+            </div>
+
+            {/* Reviews section */}
+            <Separator />
+            <div>
+              {/* Rating summary */}
+              {reviews.length > 0 && (() => {
+                const avg = reviews.reduce((s: number, r: any) => s + r.rating, 0) / reviews.length;
+                const counts = [5,4,3,2,1].map(star => ({
+                  star,
+                  count: reviews.filter((r: any) => r.rating === star).length,
+                }));
+                return (
+                  <div className="flex gap-8 items-start mb-6 p-4 bg-muted/30 rounded-xl">
+                    <div className="text-center">
+                      <div className="text-5xl font-bold">{avg.toFixed(1)}</div>
+                      <div className="flex justify-center gap-0.5 my-1">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star key={i} className={`h-4 w-4 ${i < Math.round(avg) ? "fill-yellow-400 text-yellow-400" : "fill-muted text-muted"}`} />
+                        ))}
+                      </div>
+                      <div className="text-sm text-muted-foreground">{reviews.length} review{reviews.length !== 1 ? "s" : ""}</div>
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      {counts.map(({ star, count }) => (
+                        <div key={star} className="flex items-center gap-2 text-sm">
+                          <span className="w-4 text-right">{star}</span>
+                          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                          <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
+                            <div className="bg-yellow-400 h-2 rounded-full" style={{ width: `${(count / reviews.length) * 100}%` }} />
+                          </div>
+                          <span className="w-4 text-muted-foreground">{count}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <Button variant="outline" className="w-full mt-6">
-                    Load More Reviews
-                  </Button>
+                );
+              })()}
+
+              {/* Write / Edit review button above reviews */}
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-semibold">
+                  Reviews {reviews.length > 0 && <span className="text-muted-foreground text-lg">({reviews.length})</span>}
+                </h2>
+                {session && !isOwner && !userReview && !showReviewForm && (
+                  <Button onClick={() => setShowReviewForm(true)}>Write a Review</Button>
+                )}
+                {session && !isOwner && userReview && !showReviewForm && (
+                  <Button variant="outline" onClick={() => setShowReviewForm(true)}>Edit Your Review</Button>
+                )}
+                {!session && (
+                  <Button variant="outline" asChild><Link to="/auth">Sign in to review</Link></Button>
+                )}
+              </div>
+
+              {/* Inline review form */}
+              {showReviewForm && session && !isOwner && (
+                <div className="mb-6">
+                  <ReviewForm
+                    businessId={business.id}
+                    userId={session.user.id}
+                    userName={session.user.user_metadata?.full_name || session.user.email || "Community Member"}
+                    existingReview={userReview ? { id: userReview.id, rating: userReview.rating, comment: userReview.comment } : null}
+                    onSuccess={() => { setShowReviewForm(false); refetchReviews(); }}
+                    onDelete={() => { setShowReviewForm(false); refetchReviews(); }}
+                  />
                 </div>
-              </>
-            )}
+              )}
+
+              {/* Review list */}
+              {reviews.length > 0 ? (
+                <div className="space-y-4">
+                  {reviews.map((review: any) => (
+                    <ReviewCard
+                      key={review.id}
+                      userName={review.review_name || (review.userID === session?.user.id ? (session.user.user_metadata?.full_name || "You") : "Community Member")}
+                      rating={review.rating}
+                      date={new Date(review.createdAt).toLocaleDateString()}
+                      comment={review.comment}
+                      isOwn={review.userID === session?.user.id}
+                      onEdit={review.userID === session?.user.id ? () => setShowReviewForm(true) : undefined}
+                      onDelete={review.userID === session?.user.id ? async () => {
+                        const { gqlClient: gc } = await import("@/integrations/amplify/graphqlClient");
+                        await gc.graphql({
+                          query: `mutation Del($input: DeleteReviewInput!) { deleteReview(input: $input) { id } }`,
+                          variables: { input: { id: review.id } },
+                        });
+                        refetchReviews();
+                      } : undefined}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground">No reviews yet. Be the first!</p>
+              )}
+            </div>
           </div>
 
+          {/* Sidebar */}
           <div className="lg:col-span-1">
             <Card className="sticky top-24">
               <CardHeader>
@@ -370,7 +402,7 @@ const BusinessDetail = () => {
                   <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
                     <p className="font-medium">Address</p>
-                    <p className="text-sm text-muted-foreground">{business.address ?? "—"}</p>
+                    <p className="text-sm text-muted-foreground">{business.location}</p>
                   </div>
                 </div>
                 <Separator />
@@ -378,7 +410,7 @@ const BusinessDetail = () => {
                   <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
                     <p className="font-medium">Phone</p>
-                    <p className="text-sm text-muted-foreground">{currentUserId ? business.phone : "(hidden)"}</p>
+                    <p className="text-sm text-muted-foreground">{business.phone}</p>
                   </div>
                 </div>
                 <Separator />
@@ -387,12 +419,7 @@ const BusinessDetail = () => {
                   <div>
                     <p className="font-medium">Website</p>
                     {business.website ? (
-                      <a
-                        href={websiteHref(business.website)}
-                        className="text-sm text-primary hover:underline break-all"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
+                      <a href={websiteHref(business.website)} className="text-sm text-primary hover:underline break-all" target="_blank" rel="noopener noreferrer">
                         {business.website}
                       </a>
                     ) : (
@@ -400,19 +427,7 @@ const BusinessDetail = () => {
                     )}
                   </div>
                 </div>
-
                 <Separator />
-
-                <div className="flex items-start gap-3">
-                  <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="font-medium">Hours</p>
-                    <p className="text-sm text-muted-foreground">Contact business for hours</p>
-                  </div>
-                </div>
-
-                <Separator />
-
                 <div className="flex items-start gap-3">
                   <Languages className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
@@ -422,19 +437,13 @@ const BusinessDetail = () => {
                     </p>
                   </div>
                 </div>
-
-                <Separator />
-
-                <Button className="w-full" size="lg" disabled={!showReviews}>
-                  Write a Review
-                </Button>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
 
-      <footer className="bg-secondary text-secondary-foreground py-8">
+      <footer className="bg-secondary text-secondary-foreground py-8 mt-12">
         <div className="container mx-auto px-4 text-center">
           <p>&copy; 2026 Community Business Connect. Empowering minority-owned businesses.</p>
         </div>

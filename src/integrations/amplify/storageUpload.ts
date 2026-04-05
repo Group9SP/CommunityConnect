@@ -1,9 +1,8 @@
-import { getUrl, uploadData } from "aws-amplify/storage";
+import { uploadData } from "aws-amplify/storage";
 
-/**
- * Upload a business logo to S3 (Amplify Storage Gen 1 bucket).
- * Uses the `public/` prefix so URLs can be read without per-object auth when your bucket policy allows it.
- */
+const BUCKET = "communityconnect8111b1a6740d4d859252ffd81115f007a86e-dev";
+const REGION = "us-east-2";
+
 export async function uploadBusinessImage(file: File, userId: string): Promise<string> {
   const safeName = file.name.replace(/[^\w.-]+/g, "_");
   const path = `public/business-images/${userId}/${Date.now()}-${safeName}`;
@@ -11,11 +10,9 @@ export async function uploadBusinessImage(file: File, userId: string): Promise<s
   await uploadData({
     path,
     data: file,
-    options: {
-      contentType: file.type || undefined,
-    },
+    options: { contentType: file.type || undefined },
   }).result;
 
-  const { url } = await getUrl({ path });
-  return url.toString();
+  // Permanent public URL — works as long as the bucket has public read on the public/ prefix
+  return `https://${BUCKET}.s3.${REGION}.amazonaws.com/${path}`;
 }
