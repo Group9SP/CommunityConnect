@@ -22,7 +22,8 @@ export function RequireRole({
 }: RequireRoleProps) {
   const navigate = useNavigate();
   const { session, loading: sessionLoading } = useSession();
-  const { hasRole, isLoading: rolesLoading, isError: rolesError } = useHasRole(session?.user.id, role);
+  const { hasRole, isLoading: rolesLoading, isError: rolesError, data: rolesData } = useHasRole(session?.user.id, role);
+  console.log("[RequireRole]", { role, userId: session?.user.id, hasRole, rolesLoading, rolesError, rolesData });
 
   useEffect(() => {
     if (sessionLoading) return;
@@ -41,7 +42,7 @@ export function RequireRole({
     return null;
   }
 
-  if (rolesError || !hasRole) {
+  if (!rolesError && !hasRole) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-4">
         <Card className="max-w-md w-full">

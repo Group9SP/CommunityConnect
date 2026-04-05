@@ -1,0 +1,15 @@
+{
+  "resourceName": "minoritystorage",
+  "policyUUID": "aeb103e7",
+  "bucketName": "communityconnect8111b1a6740d4d859252ffd81115f00",
+  "storageAccess": "authAndGuest",
+  "guestAccess": [
+    "READ"
+  ],
+  "authAccess": [
+    "CREATE_AND_UPDATE",
+    "READ",
+    "DELETE"
+  ],
+  "groupAccess": {}
+}

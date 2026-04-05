@@ -2,7 +2,7 @@
   "version": "1",
   "cognitoConfig": {
     "identityPoolName": "communityconnectfb602f9c_identitypool_fb602f9c",
-    "allowUnauthenticatedIdentities": false,
+    "allowUnauthenticatedIdentities": true,
     "resourceNameTruncated": "communfb602f9c",
     "userPoolName": "communityconnectfb602f9c_userpool_fb602f9c",
     "autoVerifiedAttributes": [
@@ -12,10 +12,10 @@
     "mfaTypes": [
       "SMS Text Message"
     ],
-    "smsAuthenticationMessage": "Welcome to Community Connect. Your verification code is {####}",
-    "smsVerificationMessage": "Welcome to Community Connect. Your verification code is {####}",
-    "emailVerificationSubject": "Welcome to Community Connect",
-    "emailVerificationMessage": "Thank you for joining Community Connect! Your verification code is {####}",
+    "smsAuthenticationMessage": "Welcome to Minority X-Change - Your Verification Code your verification code is {####}",
+    "smsVerificationMessage": "Welcome to Minority X-Change - Your Verification Code your verification code is {####}",
+    "emailVerificationSubject": "Welcome to Minority X-Change - Your Verification Code",
+    "emailVerificationMessage": "Thank you for joining our community! Your verification code is {####}",
     "defaultPasswordPolicy": false,
     "passwordPolicyMinLength": 8,
     "passwordPolicyCharacters": [],
@@ -83,7 +83,9 @@
     "parentStack": {
       "Ref": "AWS::StackId"
     },
-    "authTriggerConnections": "[\n  {\n    \"triggerType\": \"PostConfirmation\",\n    \"lambdaFunctionName\": \"communityconnectfb602f9cPostConfirmation\"\n  }\n]",
+    "authTriggerConnections": [
+      "{\"triggerType\":\"PostConfirmation\",\"lambdaFunctionName\":\"communityconnectfb602f9cPostConfirmation\"}"
+    ],
     "permissions": []
   }
 }

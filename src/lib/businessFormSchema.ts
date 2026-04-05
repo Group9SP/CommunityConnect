@@ -24,6 +24,7 @@ const businessFormObjectSchema = z.object({
   address: z.string().max(500).optional().or(z.literal("")),
   phone: z.string().optional().or(z.literal("")),
   website: z.string().optional().or(z.literal("")),
+  hours: z.string().max(1000).optional().or(z.literal("")),
   price_level: z.coerce.number().int().min(1).max(4).default(2),
   languages: z.string().default("English"),
   is_minority_owned: z.boolean().default(false),

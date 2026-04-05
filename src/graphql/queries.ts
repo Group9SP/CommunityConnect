@@ -56,78 +56,6 @@ export const listUserRoles = /* GraphQL */ `query ListUserRoles(
   APITypes.ListUserRolesQueryVariables,
   APITypes.ListUserRolesQuery
 >;
-export const getBusinessProfile = /* GraphQL */ `query GetBusinessProfile($id: ID!) {
-  getBusinessProfile(id: $id) {
-    id
-    profileID
-    profile {
-      id
-      full_name
-      avatar_url
-      createdAt
-      updatedAt
-      profileBusinessProfileId
-      owner
-      __typename
-    }
-    business_name
-    category
-    description
-    address
-    phone
-    website
-    price_level
-    languages
-    is_minority_owned
-    is_howard_affiliated
-    verification_status
-    reviews {
-      nextToken
-      __typename
-    }
-    createdAt
-    updatedAt
-    owner
-    __typename
-  }
-}
-` as GeneratedQuery<
-  APITypes.GetBusinessProfileQueryVariables,
-  APITypes.GetBusinessProfileQuery
->;
-export const listBusinessProfiles = /* GraphQL */ `query ListBusinessProfiles(
-  $filter: ModelBusinessProfileFilterInput
-  $limit: Int
-  $nextToken: String
-) {
-  listBusinessProfiles(filter: $filter, limit: $limit, nextToken: $nextToken) {
-    items {
-      id
-      profileID
-      business_name
-      category
-      description
-      address
-      phone
-      website
-      price_level
-      languages
-      is_minority_owned
-      is_howard_affiliated
-      verification_status
-      createdAt
-      updatedAt
-      owner
-      __typename
-    }
-    nextToken
-    __typename
-  }
-}
-` as GeneratedQuery<
-  APITypes.ListBusinessProfilesQueryVariables,
-  APITypes.ListBusinessProfilesQuery
->;
 export const userRolesByProfileID = /* GraphQL */ `query UserRolesByProfileID(
   $profileID: ID!
   $sortDirection: ModelSortDirection
@@ -177,11 +105,14 @@ export const getProfile = /* GraphQL */ `query GetProfile($id: ID!) {
       address
       phone
       website
+      hours
       price_level
       languages
       is_minority_owned
       is_howard_affiliated
       verification_status
+      logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
@@ -230,6 +161,172 @@ export const listProfiles = /* GraphQL */ `query ListProfiles(
   APITypes.ListProfilesQueryVariables,
   APITypes.ListProfilesQuery
 >;
+export const getBusinessProfile = /* GraphQL */ `query GetBusinessProfile($id: ID!) {
+  getBusinessProfile(id: $id) {
+    id
+    profileID
+    profile {
+      id
+      full_name
+      avatar_url
+      createdAt
+      updatedAt
+      profileBusinessProfileId
+      owner
+      __typename
+    }
+    business_name
+    category
+    description
+    address
+    phone
+    website
+    hours
+    price_level
+    languages
+    is_minority_owned
+    is_howard_affiliated
+    verification_status
+    logo_url
+    website_clicks
+    reviews {
+      nextToken
+      __typename
+    }
+    createdAt
+    updatedAt
+    owner
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.GetBusinessProfileQueryVariables,
+  APITypes.GetBusinessProfileQuery
+>;
+export const listBusinessProfiles = /* GraphQL */ `query ListBusinessProfiles(
+  $filter: ModelBusinessProfileFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listBusinessProfiles(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      id
+      profileID
+      business_name
+      category
+      description
+      address
+      phone
+      website
+      hours
+      price_level
+      languages
+      is_minority_owned
+      is_howard_affiliated
+      verification_status
+      logo_url
+      website_clicks
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.ListBusinessProfilesQueryVariables,
+  APITypes.ListBusinessProfilesQuery
+>;
+export const businessProfilesByCategory = /* GraphQL */ `query BusinessProfilesByCategory(
+  $category: String!
+  $sortDirection: ModelSortDirection
+  $filter: ModelBusinessProfileFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  businessProfilesByCategory(
+    category: $category
+    sortDirection: $sortDirection
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+  ) {
+    items {
+      id
+      profileID
+      business_name
+      category
+      description
+      address
+      phone
+      website
+      hours
+      price_level
+      languages
+      is_minority_owned
+      is_howard_affiliated
+      verification_status
+      logo_url
+      website_clicks
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.BusinessProfilesByCategoryQueryVariables,
+  APITypes.BusinessProfilesByCategoryQuery
+>;
+export const businessProfilesByAddress = /* GraphQL */ `query BusinessProfilesByAddress(
+  $address: String!
+  $sortDirection: ModelSortDirection
+  $filter: ModelBusinessProfileFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  businessProfilesByAddress(
+    address: $address
+    sortDirection: $sortDirection
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+  ) {
+    items {
+      id
+      profileID
+      business_name
+      category
+      description
+      address
+      phone
+      website
+      hours
+      price_level
+      languages
+      is_minority_owned
+      is_howard_affiliated
+      verification_status
+      logo_url
+      website_clicks
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.BusinessProfilesByAddressQueryVariables,
+  APITypes.BusinessProfilesByAddressQuery
+>;
 export const getReview = /* GraphQL */ `query GetReview($id: ID!) {
   getReview(id: $id) {
     id
@@ -256,16 +353,20 @@ export const getReview = /* GraphQL */ `query GetReview($id: ID!) {
       address
       phone
       website
+      hours
       price_level
       languages
       is_minority_owned
       is_howard_affiliated
       verification_status
+      logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
       __typename
     }
+    review_name
     moderation_status
     createdAt
     updatedAt
@@ -291,6 +392,7 @@ export const listReviews = /* GraphQL */ `query ListReviews(
       comment
       userID
       businessID
+      review_name
       moderation_status
       createdAt
       updatedAt
@@ -326,6 +428,7 @@ export const reviewsByUserID = /* GraphQL */ `query ReviewsByUserID(
       comment
       userID
       businessID
+      review_name
       moderation_status
       createdAt
       updatedAt
@@ -361,6 +464,7 @@ export const reviewsByBusinessID = /* GraphQL */ `query ReviewsByBusinessID(
       comment
       userID
       businessID
+      review_name
       moderation_status
       createdAt
       updatedAt
@@ -386,6 +490,7 @@ export const getReviewComment = /* GraphQL */ `query GetReviewComment($id: ID!) 
       comment
       userID
       businessID
+      review_name
       moderation_status
       createdAt
       updatedAt

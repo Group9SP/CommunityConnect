@@ -3,12 +3,15 @@ import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessa
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { HoursEditor } from "./HoursEditor";
+import { defaultHours, parseHours, type StructuredHours } from "@/lib/businessHours";
 
 type BusinessListingFormFieldsProps<T extends FieldValues> = {
   control: Control<T>;
+  currentLogoUrl?: string | null;
 };
 
-export function BusinessListingFormFields<T extends FieldValues>({ control }: BusinessListingFormFieldsProps<T>) {
+export function BusinessListingFormFields<T extends FieldValues>({ control, currentLogoUrl }: BusinessListingFormFieldsProps<T>) {
   return (
     <>
       <div className="grid gap-6 md:grid-cols-2">
@@ -105,6 +108,27 @@ export function BusinessListingFormFields<T extends FieldValues>({ control }: Bu
         )}
       />
 
+      <FormField
+        control={control}
+        name={"hours" as Path<T>}
+        render={({ field }) => {
+          const structured: StructuredHours = parseHours(field.value) ?? defaultHours();
+          return (
+            <FormItem>
+              <FormLabel>Business hours</FormLabel>
+              <FormDescription>Check the box to mark a day as open.</FormDescription>
+              <FormControl>
+                <HoursEditor
+                  value={structured}
+                  onChange={(h) => field.onChange(JSON.stringify(h))}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          );
+        }}
+      />
+
       <div className="grid gap-6 md:grid-cols-2">
         <FormField
           control={control}
@@ -178,6 +202,12 @@ export function BusinessListingFormFields<T extends FieldValues>({ control }: Bu
           <FormItem>
             <FormLabel>Business logo</FormLabel>
             <FormDescription>Optional. Square image works best.</FormDescription>
+            {currentLogoUrl && (
+              <div className="mb-2">
+                <img src={currentLogoUrl} alt="Current logo" className="h-20 w-20 rounded object-cover border" />
+                <p className="text-xs text-muted-foreground mt-1">Current logo — upload a new file to replace it.</p>
+              </div>
+            )}
             <FormControl>
               <Input
                 ref={ref}

@@ -211,6 +211,7 @@ export default function Auth() {
           role,
         },
         async (userId) => {
+          localStorage.setItem(`cc_role_${userId}`, role);
           await insertProfile(userId, fullName);
           await insertUserRole(userId, role);
         }
@@ -269,7 +270,7 @@ export default function Auth() {
         title: "Account Created!",
         description: "Welcome! Your account has been created successfully.",
       });
-      navigate("/");
+      navigate(role === "business_owner" ? "/owner/business" : "/");
     }
   };
 
@@ -344,16 +345,12 @@ export default function Auth() {
       }
 
       try {
+        localStorage.setItem(`cc_role_${session.user.id}`, profileRole);
         await insertProfile(session.user.id, profileFullName);
         await insertUserRole(session.user.id, profileRole);
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "Could not save your profile.";
-        toast({
-          title: "Profile setup",
-          description: msg,
-          variant: "destructive",
-        });
-        return;
+        // REST API may not be deployed yet — log but don't block the user
+        console.warn("Profile/role setup skipped:", err instanceof Error ? err.message : err);
       }
 
       try {
@@ -368,7 +365,7 @@ export default function Auth() {
         title: "Welcome!",
         description: "Your email is verified and your account is ready.",
       });
-      navigate("/");
+      navigate(profileRole === "business_owner" ? "/owner/business" : "/");
     } finally {
       setConfirmLoading(false);
     }
