@@ -15,7 +15,7 @@ export function AppSidebar() {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 h-full bg-card border-r flex flex-col items-center py-6 gap-4 z-40 transition-all duration-200",
+        "fixed left-0 top-0 h-full bg-card border-r flex flex-col items-center py-6 gap-4 z-[100] transition-all duration-200",
         collapsed ? "w-12" : "w-48"
       )}
     >
@@ -23,8 +23,8 @@ export function AppSidebar() {
       <button
         onClick={() => { setCollapsed(c => !c); }}
         className={cn(
-          "font-black text-primary transition-all duration-200 px-2 text-center leading-tight hover:opacity-70",
-          collapsed ? "text-xs" : "text-sm"
+          "font-black text-primary transition-all duration-200 px-2 text-center leading-tight hover:opacity-70 overflow-hidden whitespace-nowrap",
+          collapsed ? "text-xs w-8" : "text-sm w-44"
         )}
       >
         {collapsed ? "CC" : "Community Connect"}
