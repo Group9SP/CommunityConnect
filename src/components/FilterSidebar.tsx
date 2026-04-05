@@ -5,9 +5,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
-import { X } from "lucide-react";
 import { CATEGORIES, BusinessFilters, DEFAULT_FILTERS } from "@/types/business-filters";
 
+// ---------------------------------------------------------------------------
 
 interface FilterSidebarProps {
   filters: BusinessFilters;
@@ -18,24 +18,30 @@ function countActiveFilters(filters: BusinessFilters): number {
   let count = 0;
   if (filters.verified) count++;
   if (filters.howardAffiliated) count++;
+  if (filters.minorityOwned) count++;
   if (filters.categories.length > 0) count++;
   if (filters.minRating > 0) count++;
   if (filters.maxPriceLevel < 4) count++;
   return count;
 }
 
-export const FilterSidebar = ({ filters,onFilterChange }: FilterSidebarProps) => {
+// ---------------------------------------------------------------------------
+
+export const FilterSidebar = ({ filters, onFilterChange }: FilterSidebarProps) => {
   const activeCount = countActiveFilters(filters);
+
   function handleCategoryToggle(category: string, checked: boolean) {
     const next = checked
       ? [...filters.categories, category]
       : filters.categories.filter((c) => c !== category);
     onFilterChange({ ...filters, categories: next });
   }
+
   function handleRatingToggle(rating: number, checked: boolean) {
     // Only one minimum rating active at a time; unchecking resets to 0 (any)
     onFilterChange({ ...filters, minRating: checked ? rating : 0 });
   }
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -60,11 +66,13 @@ export const FilterSidebar = ({ filters,onFilterChange }: FilterSidebarProps) =>
           )}
         </div>
       </CardHeader>
+
       <CardContent className="space-y-6">
         {/* Verification */}
         <div className="space-y-3">
-          <h3 className="font-semibold">Verification</h3>
+          <h3 className="font-semibold">Verification & Affiliation</h3>
           <div className="space-y-2">
+            {/* Verified Minority-Owned */}
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="verified"
@@ -77,6 +85,8 @@ export const FilterSidebar = ({ filters,onFilterChange }: FilterSidebarProps) =>
                 Verified Minority-Owned
               </Label>
             </div>
+
+            {/* Howard Affiliated */}
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="howard"
@@ -89,8 +99,23 @@ export const FilterSidebar = ({ filters,onFilterChange }: FilterSidebarProps) =>
                 Howard Affiliated
               </Label>
             </div>
+
+            {/* Minority-Owned (F3.2.2 — distinct from "verified") */}
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="minorityOwned"
+                checked={filters.minorityOwned}
+                onCheckedChange={(checked) =>
+                  onFilterChange({ ...filters, minorityOwned: !!checked })
+                }
+              />
+              <Label htmlFor="minorityOwned" className="cursor-pointer">
+                Minority-Owned
+              </Label>
+            </div>
           </div>
         </div>
+
         <Separator />
         {/* Category */}
         <div className="space-y-3">
@@ -112,6 +137,7 @@ export const FilterSidebar = ({ filters,onFilterChange }: FilterSidebarProps) =>
             ))}
           </div>
         </div>
+
         <Separator />
         {/* Price Range */}
         <div className="space-y-3">
@@ -135,6 +161,7 @@ export const FilterSidebar = ({ filters,onFilterChange }: FilterSidebarProps) =>
             <span>$$$$</span>
           </div>
         </div>
+
         <Separator />
         {/* Rating */}
         <div className="space-y-3">
@@ -156,6 +183,7 @@ export const FilterSidebar = ({ filters,onFilterChange }: FilterSidebarProps) =>
             ))}
           </div>
         </div>
+
       </CardContent>
     </Card>
   );

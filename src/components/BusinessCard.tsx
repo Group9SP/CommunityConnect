@@ -18,6 +18,7 @@ interface BusinessCardProps {
   /** F5.1.7 — Howard badge (admin-verified + claimed) */
   isHowardAffiliated: boolean;
   description: string;
+  verificationStatus?: "pending" | "verified" | "rejected";
 }
 
 export const BusinessCard = ({
@@ -33,6 +34,7 @@ export const BusinessCard = ({
   isVerified,
   isHowardAffiliated,
   description,
+  verificationStatus,
 }: BusinessCardProps) => {
   return (
     <Link to={`/business/${id}`}>
@@ -44,15 +46,14 @@ export const BusinessCard = ({
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
           <div className="absolute top-3 right-3 flex flex-col gap-2">
+            {/* Highlight verified listings so users can quickly spot trusted businesses. */}
             {isVerified && (
               <Badge className="bg-[hsl(var(--verified-badge))] text-white">
                 ✓ Verified
               </Badge>
             )}
             {isHowardAffiliated && (
-              <Badge className="bg-accent text-accent-foreground">
-                Howard Affiliated
-              </Badge>
+              <Badge className="bg-accent text-accent-foreground">Howard Affiliated</Badge>
             )}
           </div>
         </div>

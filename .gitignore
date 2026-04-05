@@ -6,11 +6,16 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+bun.lock
+bun.lockb
 
 node_modules
 dist
 dist-ssr
 *.local
+.env
+.env.local
+.env.*.local
 
 # Editor directories and files
 .vscode/*
@@ -22,3 +27,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Amplify local outputs (do not commit secrets)
+src/aws-exports.js
+aws-exports.js
+amplify_outputs.json
+amplifyconfiguration.json

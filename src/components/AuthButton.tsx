@@ -1,9 +1,7 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
+import { LogOut, User as UserIcon, ClipboardList, Building2 } from "lucide-react";
 import { LogOut, ShieldCheck, User as UserIcon, FileCheck } from "lucide-react";
 import { useUserRoles } from "@/hooks/use-user-roles";
 import {
@@ -14,11 +12,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { signOutUser } from "@/integrations/amplify/authSession";
+import { useSession } from "@/features/auth/hooks/useSession";
+import { useHasRole } from "@/features/auth/hooks/useUserRoles";
 
 export default function AuthButton() {
-  const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { session } = useSession();
+  const user = session?.user ?? null;
+  const { hasRole: isAdmin } = useHasRole(user?.id, "admin");
+  const { hasRole: isBusinessOwner } = useHasRole(user?.id, "business_owner");
   const { isAdmin, isBusinessOwner } = useUserRoles(user?.id);
 
   useEffect(() => {
@@ -38,22 +42,16 @@ export default function AuthButton() {
   }, []);
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    
-    if (error) {
+    try {
+      await signOutUser();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Sign out failed.";
       toast({
         title: "Logout Failed",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
-      return;
     }
-
-    toast({
-      title: "Logged Out",
-      description: "You have been successfully logged out.",
-    });
-    navigate("/");
   };
 
   if (!user) {
@@ -73,9 +71,21 @@ export default function AuthButton() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>
-          {user.user_metadata?.full_name || user.email}
+          {user.signInDetails?.loginId || user.username}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        {isAdmin && (
+          <DropdownMenuItem onClick={() => navigate("/admin/review")}>
+            <ClipboardList className="mr-2 h-4 w-4" />
+            Review queue
+          </DropdownMenuItem>
+        )}
+        {isBusinessOwner && (
+          <DropdownMenuItem onClick={() => navigate("/owner/business")}>
+            <Building2 className="mr-2 h-4 w-4" />
+            My business
+          </DropdownMenuItem>
+        )}
         {isBusinessOwner && (
           <DropdownMenuItem onClick={() => navigate("/verification")}>
             <FileCheck className="mr-2 h-4 w-4" />
