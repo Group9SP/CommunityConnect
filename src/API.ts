@@ -307,25 +307,6 @@ export type ModelVerificationStatusInput = {
   ne?: VerificationStatus | null,
 };
 
-export type UpdateBusinessProfileInput = {
-  id: string,
-  profileID?: string | null,
-  business_name?: string | null,
-  category?: string | null,
-  description?: string | null,
-  address?: string | null,
-  phone?: string | null,
-  website?: string | null,
-  hours?: string | null,
-  price_level?: number | null,
-  languages?: Array< string | null > | null,
-  is_minority_owned?: boolean | null,
-  is_howard_affiliated?: boolean | null,
-  verification_status?: VerificationStatus | null,
-  logo_url?: string | null,
-  website_clicks?: number | null,
-};
-
 export type DeleteBusinessProfileInput = {
   id: string,
 };
@@ -413,6 +394,25 @@ export type UpdateReviewCommentInput = {
 
 export type DeleteReviewCommentInput = {
   id: string,
+};
+
+export type UpdateBusinessProfileInput = {
+  id: string,
+  profileID?: string | null,
+  business_name?: string | null,
+  category?: string | null,
+  description?: string | null,
+  address?: string | null,
+  phone?: string | null,
+  website?: string | null,
+  hours?: string | null,
+  price_level?: number | null,
+  languages?: Array< string | null > | null,
+  is_minority_owned?: boolean | null,
+  is_howard_affiliated?: boolean | null,
+  verification_status?: VerificationStatus | null,
+  logo_url?: string | null,
+  website_clicks?: number | null,
 };
 
 export type ModelUserRoleFilterInput = {
@@ -916,50 +916,6 @@ export type CreateBusinessProfileMutation = {
   } | null,
 };
 
-export type UpdateBusinessProfileMutationVariables = {
-  input: UpdateBusinessProfileInput,
-  condition?: ModelBusinessProfileConditionInput | null,
-};
-
-export type UpdateBusinessProfileMutation = {
-  updateBusinessProfile?:  {
-    __typename: "BusinessProfile",
-    id: string,
-    profileID: string,
-    profile?:  {
-      __typename: "Profile",
-      id: string,
-      full_name: string,
-      avatar_url?: string | null,
-      createdAt: string,
-      updatedAt: string,
-      profileBusinessProfileId?: string | null,
-      owner?: string | null,
-    } | null,
-    business_name: string,
-    category: string,
-    description?: string | null,
-    address?: string | null,
-    phone?: string | null,
-    website?: string | null,
-    hours?: string | null,
-    price_level?: number | null,
-    languages?: Array< string | null > | null,
-    is_minority_owned?: boolean | null,
-    is_howard_affiliated?: boolean | null,
-    verification_status?: VerificationStatus | null,
-    logo_url?: string | null,
-    website_clicks?: number | null,
-    reviews?:  {
-      __typename: "ModelReviewConnection",
-      nextToken?: string | null,
-    } | null,
-    createdAt: string,
-    updatedAt: string,
-    owner?: string | null,
-  } | null,
-};
-
 export type DeleteBusinessProfileMutationVariables = {
   input: DeleteBusinessProfileInput,
   condition?: ModelBusinessProfileConditionInput | null,
@@ -1300,6 +1256,50 @@ export type DeleteReviewCommentMutation = {
     comment: string,
     createdAt?: string | null,
     updatedAt?: string | null,
+    owner?: string | null,
+  } | null,
+};
+
+export type UpdateBusinessProfileMutationVariables = {
+  input: UpdateBusinessProfileInput,
+  condition?: ModelBusinessProfileConditionInput | null,
+};
+
+export type UpdateBusinessProfileMutation = {
+  updateBusinessProfile?:  {
+    __typename: "BusinessProfile",
+    id: string,
+    profileID: string,
+    profile?:  {
+      __typename: "Profile",
+      id: string,
+      full_name: string,
+      avatar_url?: string | null,
+      createdAt: string,
+      updatedAt: string,
+      profileBusinessProfileId?: string | null,
+      owner?: string | null,
+    } | null,
+    business_name: string,
+    category: string,
+    description?: string | null,
+    address?: string | null,
+    phone?: string | null,
+    website?: string | null,
+    hours?: string | null,
+    price_level?: number | null,
+    languages?: Array< string | null > | null,
+    is_minority_owned?: boolean | null,
+    is_howard_affiliated?: boolean | null,
+    verification_status?: VerificationStatus | null,
+    logo_url?: string | null,
+    website_clicks?: number | null,
+    reviews?:  {
+      __typename: "ModelReviewConnection",
+      nextToken?: string | null,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
     owner?: string | null,
   } | null,
 };

@@ -260,7 +260,7 @@ const Browse = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="text-2xl font-bold text-primary">
-              Minority X-Change
+              Community Connect
             </Link>
             <nav className="flex items-center gap-4">
               <Link to="/browse">
@@ -471,7 +471,7 @@ const Browse = () => {
       {/* ── Footer ── */}
       <footer className="bg-secondary text-secondary-foreground py-8 mt-20">
         <div className="container mx-auto px-4 text-center">
-          <p>&copy; 2025 Minority X-Change. Empowering minority-owned businesses.</p>
+          <p>&copy; 2025 Community Connect. Empowering minority-owned businesses.</p>
         </div>
       </footer>
 
