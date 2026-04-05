@@ -120,9 +120,6 @@ function filtersFromParams(params: URLSearchParams): BusinessFilters {
   };
 }
 
-// ---------------------------------------------------------------------------
-
-// Component
 const Browse = () => {
   const { data: listingRows } = useQuery({
     queryKey: ["public-businesses"],
@@ -188,7 +185,6 @@ const Browse = () => {
     setSearchParams(params, { replace: true });
   }, [filters, debouncedQuery, page, setSearchParams]);
 
-  // Debounce search input (300 ms) — avoids filtering on every keystroke
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
     setPage(1); // Reset to page 1 on new search
@@ -442,7 +438,7 @@ const Browse = () => {
                   <BusinessCard key={business.id} {...business} />
                 ))}
               </div>
-            ) : (
+            ) : !listLoading ? (
               <div className="text-center py-20 text-muted-foreground">
                 <p className="text-lg font-medium">
                   No businesses match your filters.

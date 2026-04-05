@@ -13,7 +13,9 @@ interface BusinessCardProps {
   priceLevel: number;
   languages: string[];
   location: string;
+  /** F5.1.7 — minority-owned badge (admin-verified + claimed) */
   isVerified: boolean;
+  /** F5.1.7 — Howard badge (admin-verified + claimed) */
   isHowardAffiliated: boolean;
   description: string;
   verificationStatus?: "pending" | "verified" | "rejected";

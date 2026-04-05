@@ -2,6 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { LogOut, User as UserIcon, ClipboardList, Building2 } from "lucide-react";
+import { LogOut, ShieldCheck, User as UserIcon, FileCheck } from "lucide-react";
+import { useUserRoles } from "@/hooks/use-user-roles";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +23,23 @@ export default function AuthButton() {
   const user = session?.user ?? null;
   const { hasRole: isAdmin } = useHasRole(user?.id, "admin");
   const { hasRole: isBusinessOwner } = useHasRole(user?.id, "business_owner");
+  const { isAdmin, isBusinessOwner } = useUserRoles(user?.id);
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -67,6 +86,19 @@ export default function AuthButton() {
             My business
           </DropdownMenuItem>
         )}
+        {isBusinessOwner && (
+          <DropdownMenuItem onClick={() => navigate("/verification")}>
+            <FileCheck className="mr-2 h-4 w-4" />
+            Verification
+          </DropdownMenuItem>
+        )}
+        {isAdmin && (
+          <DropdownMenuItem onClick={() => navigate("/admin")}>
+            <ShieldCheck className="mr-2 h-4 w-4" />
+            Admin
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>
           <LogOut className="mr-2 h-4 w-4" />
           Logout

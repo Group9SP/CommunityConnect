@@ -1,9 +1,7 @@
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ReviewCard } from "@/components/ReviewCard";
 import AuthButton from "@/components/AuthButton";
@@ -149,6 +147,39 @@ const BusinessDetail = () => {
   const showReviews = business.source === "demo";
   const showAmenities = business.amenities.length > 0;
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!business) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-6">
+        <p className="text-muted-foreground">Business not found or not verified.</p>
+        <Link to="/browse">
+          <Button variant="outline">Back to browse</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  const hero = imageForCategory(business.category);
+  const rating = 4.5;
+  const reviewCount = 0;
+  const priceLevel = business.price_level ?? 2;
+  const langs = business.languages ?? [];
+  const vf: BusinessVerificationFields = {
+    verification_status: business.verification_status,
+    is_minority_owned: business.is_minority_owned,
+    is_howard_affiliated: business.is_howard_affiliated,
+    minority_verified: business.minority_verified ?? false,
+    howard_verified: business.howard_verified ?? false,
+  };
+  const website = business.website?.replace(/^https?:\/\//, "") ?? "";
+
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-card border-b sticky top-0 z-50 shadow-sm">
@@ -176,7 +207,7 @@ const BusinessDetail = () => {
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-3 gap-2 h-[400px]">
+        <div className="grid grid-cols-3 gap-2 h-[400px] mb-8">
           <div className="col-span-2 rounded-lg overflow-hidden">
             <img src={business.images[0]} alt={business.name} className="w-full h-full object-cover" />
           </div>
@@ -260,7 +291,7 @@ const BusinessDetail = () => {
                 </div>
 
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: business.priceLevel }).map((_, i) => (
+                  {Array.from({ length: priceLevel }).map((_, i) => (
                     <DollarSign key={i} className="h-4 w-4 text-muted-foreground" />
                   ))}
                 </div>
@@ -339,7 +370,7 @@ const BusinessDetail = () => {
                   <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
                     <p className="font-medium">Address</p>
-                    <p className="text-sm text-muted-foreground">{business.location}</p>
+                    <p className="text-sm text-muted-foreground">{business.address ?? "—"}</p>
                   </div>
                 </div>
                 <Separator />
@@ -376,7 +407,7 @@ const BusinessDetail = () => {
                   <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
                     <p className="font-medium">Hours</p>
-                    <p className="text-sm text-muted-foreground">{business.hours}</p>
+                    <p className="text-sm text-muted-foreground">Contact business for hours</p>
                   </div>
                 </div>
 
@@ -385,7 +416,7 @@ const BusinessDetail = () => {
                 <div className="flex items-start gap-3">
                   <Languages className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
-                    <p className="font-medium">Languages Spoken</p>
+                    <p className="font-medium">Languages</p>
                     <p className="text-sm text-muted-foreground">
                       {business.languages.length > 0 ? business.languages.join(", ") : "—"}
                     </p>
@@ -405,7 +436,7 @@ const BusinessDetail = () => {
 
       <footer className="bg-secondary text-secondary-foreground py-8">
         <div className="container mx-auto px-4 text-center">
-          <p>&copy; 2025 Community Business Connect. Empowering minority-owned businesses.</p>
+          <p>&copy; 2026 Community Business Connect. Empowering minority-owned businesses.</p>
         </div>
       </footer>
     </div>

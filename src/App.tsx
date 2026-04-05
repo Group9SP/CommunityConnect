@@ -11,6 +11,7 @@ import BusinessDetail from "./pages/BusinessDetail";
 import Auth from "./pages/Auth";
 import PasswordReset from "./pages/PasswordReset";
 import NotFound from "./pages/NotFound";
+
 import AddBusiness from "./pages/AddBusiness";
 import ManageBusiness from "./pages/ManageBusiness";
 import MyBusinessHub from "./pages/MyBusinessHub";
@@ -19,6 +20,10 @@ import AdminReviewQueue from "./pages/AdminReviewQueue";
 import { RequireBusinessOwner } from "./components/RequireBusinessOwner";
 // Route guard that restricts access to users with the admin role.
 import { RequireAdmin } from "./components/RequireAdmin";
+import AdminDashboard from "./pages/AdminDashboard";
+import VerificationSubmit from "./pages/VerificationSubmit";
+import { AdminRoute } from "./components/AdminRoute";
+
 
 const queryClient = new QueryClient();
 
@@ -58,13 +63,15 @@ const App = () => (
           />
           <Route path="/auth" element={<Auth />} />
           <Route
-            path="/admin/review"
+            path="/admin"
             element={
-              <RequireAdmin>
-                <AdminReviewQueue />
-              </RequireAdmin>
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
             }
           />
+          <Route path="/verification" element={<VerificationSubmit />} />
+
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
