@@ -421,6 +421,7 @@ export const createReview = /* GraphQL */ `mutation CreateReview(
       owner
       __typename
     }
+    review_name
     moderation_status
     createdAt
     updatedAt
@@ -478,6 +479,7 @@ export const updateReview = /* GraphQL */ `mutation UpdateReview(
       owner
       __typename
     }
+    review_name
     moderation_status
     createdAt
     updatedAt
@@ -535,6 +537,7 @@ export const deleteReview = /* GraphQL */ `mutation DeleteReview(
       owner
       __typename
     }
+    review_name
     moderation_status
     createdAt
     updatedAt
@@ -564,6 +567,7 @@ export const createReviewComment = /* GraphQL */ `mutation CreateReviewComment(
       comment
       userID
       businessID
+      review_name
       moderation_status
       createdAt
       updatedAt
@@ -606,6 +610,7 @@ export const updateReviewComment = /* GraphQL */ `mutation UpdateReviewComment(
       comment
       userID
       businessID
+      review_name
       moderation_status
       createdAt
       updatedAt
@@ -648,6 +653,7 @@ export const deleteReviewComment = /* GraphQL */ `mutation DeleteReviewComment(
       comment
       userID
       businessID
+      review_name
       moderation_status
       createdAt
       updatedAt

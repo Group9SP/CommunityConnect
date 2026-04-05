@@ -421,6 +421,7 @@ export const onCreateReview = /* GraphQL */ `subscription OnCreateReview(
       owner
       __typename
     }
+    review_name
     moderation_status
     createdAt
     updatedAt
@@ -478,6 +479,7 @@ export const onUpdateReview = /* GraphQL */ `subscription OnUpdateReview(
       owner
       __typename
     }
+    review_name
     moderation_status
     createdAt
     updatedAt
@@ -535,6 +537,7 @@ export const onDeleteReview = /* GraphQL */ `subscription OnDeleteReview(
       owner
       __typename
     }
+    review_name
     moderation_status
     createdAt
     updatedAt
@@ -564,6 +567,7 @@ export const onCreateReviewComment = /* GraphQL */ `subscription OnCreateReviewC
       comment
       userID
       businessID
+      review_name
       moderation_status
       createdAt
       updatedAt
@@ -606,6 +610,7 @@ export const onUpdateReviewComment = /* GraphQL */ `subscription OnUpdateReviewC
       comment
       userID
       businessID
+      review_name
       moderation_status
       createdAt
       updatedAt
@@ -648,6 +653,7 @@ export const onDeleteReviewComment = /* GraphQL */ `subscription OnDeleteReviewC
       comment
       userID
       businessID
+      review_name
       moderation_status
       createdAt
       updatedAt

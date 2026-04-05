@@ -87,20 +87,34 @@ async function fetchBusinesses({
             variables,
             authMode: "apiKey",
         });
-        console.log("[useBusinessSearch] GraphQL response:", response);
         const items = response.data.listBusinessProfiles.items;
+
+        // Fetch review counts per business using apiKey (public read)
+        const reviewCountQuery = /* GraphQL */ `
+          query ReviewsByBusiness($businessID: ID!) {
+            reviewsByBusinessID(businessID: $businessID) {
+              items { id rating moderation_status }
+            }
+          }
+        `;
+        const reviewData = await Promise.all(
+          items.map((item: any) =>
+            client.graphql({ query: reviewCountQuery, variables: { businessID: item.id }, authMode: "apiKey" })
+              .then((r: any) => ({ id: item.id, items: r.data?.reviewsByBusinessID?.items ?? [] }))
+              .catch(() => ({ id: item.id, items: [] }))
+          )
+        );
+        const reviewMap = new Map(reviewData.map((r: any) => [r.id, r.items]));
 
         // Map to Business type
         const businesses: Business[] = items.map((item: any) => {
             // Calculate rating and reviewCount if reviews are available
             let rating = 0;
             let reviewCount = 0;
-            if (item.reviews && item.reviews.items && item.reviews.items.length > 0) {
-                const validReviews = item.reviews.items.filter((r: any) => r && typeof r.rating === 'number');
-                reviewCount = validReviews.length;
-                if (reviewCount > 0) {
-                    rating = validReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviewCount;
-                }
+            const itemReviews = (reviewMap.get(item.id) ?? []).filter((r: any) => r.moderation_status === 'approved');
+            if (itemReviews.length > 0) {
+                reviewCount = itemReviews.length;
+                rating = Math.round((itemReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviewCount) * 10) / 10;
             }
             return {
                 id: item.id,

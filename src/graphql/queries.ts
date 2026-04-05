@@ -360,6 +360,7 @@ export const getReview = /* GraphQL */ `query GetReview($id: ID!) {
       owner
       __typename
     }
+    review_name
     moderation_status
     createdAt
     updatedAt
@@ -385,6 +386,7 @@ export const listReviews = /* GraphQL */ `query ListReviews(
       comment
       userID
       businessID
+      review_name
       moderation_status
       createdAt
       updatedAt
@@ -420,6 +422,7 @@ export const reviewsByUserID = /* GraphQL */ `query ReviewsByUserID(
       comment
       userID
       businessID
+      review_name
       moderation_status
       createdAt
       updatedAt
@@ -455,6 +458,7 @@ export const reviewsByBusinessID = /* GraphQL */ `query ReviewsByBusinessID(
       comment
       userID
       businessID
+      review_name
       moderation_status
       createdAt
       updatedAt
@@ -480,6 +484,7 @@ export const getReviewComment = /* GraphQL */ `query GetReviewComment($id: ID!) 
       comment
       userID
       businessID
+      review_name
       moderation_status
       createdAt
       updatedAt

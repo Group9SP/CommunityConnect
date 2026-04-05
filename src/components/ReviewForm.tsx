@@ -9,7 +9,7 @@ import { ModerationStatus } from "@/API";
 const createReviewMutation = /* GraphQL */ `
   mutation CreateReview($input: CreateReviewInput!) {
     createReview(input: $input) {
-      id rating comment userID businessID moderation_status createdAt
+      id rating comment userID businessID moderation_status createdAt review_name
     }
   }
 `;
@@ -17,7 +17,7 @@ const createReviewMutation = /* GraphQL */ `
 const updateReviewMutation = /* GraphQL */ `
   mutation UpdateReview($input: UpdateReviewInput!) {
     updateReview(input: $input) {
-      id rating comment userID businessID moderation_status createdAt updatedAt
+      id rating comment moderation_status updatedAt review_name
     }
   }
 `;
@@ -55,11 +55,12 @@ export function ReviewForm({ businessId, userId, userName, existingReview, onSuc
       if (existingReview) {
         await gqlClient.graphql({
           query: updateReviewMutation,
-          variables: { input: { id: existingReview.id, rating, comment: comment.trim() } },
+          variables: { input: { id: existingReview.id, rating, comment: comment.trim(), review_name: userName } },
         });
         toast({ title: "Review updated" });
       } else {
-        await gqlClient.graphql({
+        // Create without review_name first (in case schema not yet deployed)
+        const created: any = await gqlClient.graphql({
           query: createReviewMutation,
           variables: {
             input: {
@@ -67,11 +68,20 @@ export function ReviewForm({ businessId, userId, userName, existingReview, onSuc
               comment: comment.trim(),
               userID: userId,
               businessID: businessId,
-              review_name: userName,
               moderation_status: ModerationStatus.approved,
             },
           },
         });
+        // Then patch review_name
+        const reviewId = created.data?.createReview?.id;
+        if (reviewId) {
+          try {
+            await gqlClient.graphql({
+              query: updateReviewMutation,
+              variables: { input: { id: reviewId, review_name: userName } },
+            });
+          } catch { /* schema may not have review_name yet */ }
+        }
         toast({ title: "Review posted" });
       }
       onSuccess?.();
@@ -92,7 +102,7 @@ export function ReviewForm({ businessId, userId, userName, existingReview, onSuc
       });
       toast({ title: "Review deleted" });
       onDelete?.();
-    } catch (e) {
+    } catch {
       toast({ title: "Could not delete review", variant: "destructive" });
     }
     setDeleting(false);
@@ -101,7 +111,6 @@ export function ReviewForm({ businessId, userId, userName, existingReview, onSuc
   return (
     <form onSubmit={handleSubmit} className="space-y-4 border rounded-xl p-6 bg-card">
       <h3 className="font-semibold text-lg">{existingReview ? "Edit your review" : "Write a review"}</h3>
-
       <div className="flex gap-1">
         {[1, 2, 3, 4, 5].map((star) => (
           <button key={star} type="button"
@@ -112,15 +121,8 @@ export function ReviewForm({ businessId, userId, userName, existingReview, onSuc
           </button>
         ))}
       </div>
-
-      <Textarea
-        placeholder="Share your experience..."
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
-        rows={4}
-        maxLength={1000}
-      />
-
+      <Textarea placeholder="Share your experience..." value={comment}
+        onChange={(e) => setComment(e.target.value)} rows={4} maxLength={1000} />
       <div className="flex gap-2">
         <Button type="submit" disabled={submitting}>
           {submitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}

@@ -1,38 +1,27 @@
 import { gqlClient } from "./graphqlClient";
-import {
-  createBusinessProfile as gqlCreate,
-  deleteBusinessProfile as gqlDelete,
-} from "@/graphql/mutations";
-import {
-  getBusinessProfile,
-  listBusinessProfiles,
-} from "@/graphql/queries";
+import { deleteBusinessProfile as gqlDelete } from "@/graphql/mutations";
+import { getBusinessProfile, listBusinessProfiles } from "@/graphql/queries";
 import { uploadBusinessImage } from "./storageUpload";
 import { VerificationStatus } from "@/API";
 
-// Minimal update mutation — excludes `profile` nested object to avoid null errors
+// Minimal mutations — exclude nested `profile` object to avoid null errors
 // when the Profile record doesn't exist for the user.
+const createBusinessProfileMutation = /* GraphQL */ `
+  mutation CreateBusinessProfile($input: CreateBusinessProfileInput!) {
+    createBusinessProfile(input: $input) {
+      id profileID business_name category description address phone website
+      hours price_level languages is_minority_owned is_howard_affiliated
+      verification_status logo_url createdAt updatedAt owner
+    }
+  }
+`;
+
 const updateBusinessProfileMutation = /* GraphQL */ `
   mutation UpdateBusinessProfile($input: UpdateBusinessProfileInput!) {
     updateBusinessProfile(input: $input) {
-      id
-      profileID
-      business_name
-      category
-      description
-      address
-      phone
-      website
-      hours
-      price_level
-      languages
-      is_minority_owned
-      is_howard_affiliated
-      verification_status
-      logo_url
-      createdAt
-      updatedAt
-      owner
+      id profileID business_name category description address phone website
+      hours price_level languages is_minority_owned is_howard_affiliated
+      verification_status logo_url createdAt updatedAt owner
     }
   }
 `;
@@ -48,7 +37,6 @@ export type BusinessProfileRow = {
   address: string | null;
   phone: string | null;
   website: string | null;
-  hours: string | null;
   hours: string | null;
   price_level: number;
   languages: string[] | null;
@@ -88,7 +76,6 @@ export class DuplicateBusinessProfileError extends Error {
   }
 }
 
-// Map GraphQL item to our BusinessProfileRow shape
 function mapItem(item: Record<string, unknown>): BusinessProfileRow {
   return {
     id: item.id as string,
@@ -142,7 +129,7 @@ export async function createBusinessProfile(
   }
 
   const result = await gqlClient.graphql({
-    query: gqlCreate,
+    query: createBusinessProfileMutation,
     variables: {
       input: {
         profileID: userId,
@@ -242,7 +229,7 @@ export async function setListingVisibility(
   _userId: string,
   _visibility: ListingVisibility
 ): Promise<BusinessProfileRow> {
-  throw new Error("listing_visibility not in GraphQL schema — update schema to support this.");
+  throw new Error("listing_visibility not in GraphQL schema.");
 }
 
 export async function setBusinessVerificationStatus(
@@ -251,12 +238,7 @@ export async function setBusinessVerificationStatus(
 ): Promise<void> {
   await gqlClient.graphql({
     query: updateBusinessProfileMutation,
-    variables: {
-      input: {
-        id: businessId,
-        verification_status: verification_status as VerificationStatus,
-      },
-    },
+    variables: { input: { id: businessId, verification_status: verification_status as VerificationStatus } },
   });
 }
 

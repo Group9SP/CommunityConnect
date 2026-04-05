@@ -24,9 +24,9 @@ export function parseHours(raw: string | null | undefined): StructuredHours | nu
 export function defaultHours(): StructuredHours {
   return DAYS.map((day) => ({
     day,
-    open: "9:00 AM",
-    close: "5:00 PM",
-    closed: day === "Sun",
+    open: "",
+    close: "",
+    closed: true,
   }));
 }
 
