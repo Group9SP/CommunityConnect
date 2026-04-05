@@ -21,7 +21,6 @@ import { RequireBusinessOwner } from "./components/RequireBusinessOwner";
 // Route guard that restricts access to users with the admin role.
 import { RequireAdmin } from "./components/RequireAdmin";
 import AdminDashboard from "./pages/AdminDashboard";
-import VerificationSubmit from "./pages/VerificationSubmit";
 import { AdminRoute } from "./components/AdminRoute";
 
 
@@ -70,8 +69,6 @@ const App = () => (
               </AdminRoute>
             }
           />
-          <Route path="/verification" element={<VerificationSubmit />} />
-
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
