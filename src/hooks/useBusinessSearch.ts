@@ -62,15 +62,12 @@ async function fetchBusinesses({
     businesses: Business[];
     totalCount: number;
 }> {
-    // Build Amplify filter object
     const filter: any = {};
     if (filters.verified) filter.verification_status = { eq: "verified" };
     if (filters.howardAffiliated) filter.is_howard_affiliated = { eq: true };
     if (filters.minorityOwned) filter.is_minority_owned = { eq: true };
     if (filters.categories.length > 0) filter.category = { in: filters.categories };
     if (filters.maxPriceLevel < 4) filter.price_level = { lte: filters.maxPriceLevel };
-    // If you have a rating field in your schema, add it here
-    // if (filters.minRating > 0) filter.rating = { gte: filters.minRating };
     if (query.trim()) {
         filter.or = [
             { business_name: { contains: query } },
@@ -80,37 +77,50 @@ async function fetchBusinesses({
         ];
     }
 
-    const variables = {
-        filter,
-        limit: pageSize,
-        // For real cursor-based pagination, handle nextToken here
-    };
+    const variables: any = { limit: pageSize };
+    if (Object.keys(filter).length > 0) variables.filter = filter;
 
     try {
         const client = generateClient();
         const response: any = await client.graphql({
             query: listBusinessProfiles,
-            variables
+            variables,
+            authMode: "apiKey",
         });
         const items = response.data.listBusinessProfiles.items;
+
+        // Fetch review counts per business using apiKey (public read)
+        const reviewCountQuery = /* GraphQL */ `
+          query ReviewsByBusiness($businessID: ID!) {
+            reviewsByBusinessID(businessID: $businessID) {
+              items { id rating moderation_status }
+            }
+          }
+        `;
+        const reviewData = await Promise.all(
+          items.map((item: any) =>
+            client.graphql({ query: reviewCountQuery, variables: { businessID: item.id }, authMode: "apiKey" })
+              .then((r: any) => ({ id: item.id, items: r.data?.reviewsByBusinessID?.items ?? [] }))
+              .catch(() => ({ id: item.id, items: [] }))
+          )
+        );
+        const reviewMap = new Map(reviewData.map((r: any) => [r.id, r.items]));
 
         // Map to Business type
         const businesses: Business[] = items.map((item: any) => {
             // Calculate rating and reviewCount if reviews are available
             let rating = 0;
             let reviewCount = 0;
-            if (item.reviews && item.reviews.items && item.reviews.items.length > 0) {
-                const validReviews = item.reviews.items.filter((r: any) => r && typeof r.rating === 'number');
-                reviewCount = validReviews.length;
-                if (reviewCount > 0) {
-                    rating = validReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviewCount;
-                }
+            const itemReviews = (reviewMap.get(item.id) ?? []).filter((r: any) => r.moderation_status === 'approved');
+            if (itemReviews.length > 0) {
+                reviewCount = itemReviews.length;
+                rating = Math.round((itemReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviewCount) * 10) / 10;
             }
             return {
                 id: item.id,
                 name: item.business_name,
                 category: item.category,
-                image: '', // TODO: Map image if available in schema
+                image: item.logo_url || '',
                 rating,
                 reviewCount,
                 priceLevel: item.price_level ?? 1,

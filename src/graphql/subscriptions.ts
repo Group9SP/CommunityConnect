@@ -92,132 +92,6 @@ export const onDeleteUserRole = /* GraphQL */ `subscription OnDeleteUserRole(
   APITypes.OnDeleteUserRoleSubscriptionVariables,
   APITypes.OnDeleteUserRoleSubscription
 >;
-export const onCreateBusinessProfile = /* GraphQL */ `subscription OnCreateBusinessProfile(
-  $filter: ModelSubscriptionBusinessProfileFilterInput
-  $owner: String
-) {
-  onCreateBusinessProfile(filter: $filter, owner: $owner) {
-    id
-    profileID
-    profile {
-      id
-      full_name
-      avatar_url
-      createdAt
-      updatedAt
-      profileBusinessProfileId
-      owner
-      __typename
-    }
-    business_name
-    category
-    description
-    address
-    phone
-    website
-    price_level
-    languages
-    is_minority_owned
-    is_howard_affiliated
-    verification_status
-    reviews {
-      nextToken
-      __typename
-    }
-    createdAt
-    updatedAt
-    owner
-    __typename
-  }
-}
-` as GeneratedSubscription<
-  APITypes.OnCreateBusinessProfileSubscriptionVariables,
-  APITypes.OnCreateBusinessProfileSubscription
->;
-export const onUpdateBusinessProfile = /* GraphQL */ `subscription OnUpdateBusinessProfile(
-  $filter: ModelSubscriptionBusinessProfileFilterInput
-  $owner: String
-) {
-  onUpdateBusinessProfile(filter: $filter, owner: $owner) {
-    id
-    profileID
-    profile {
-      id
-      full_name
-      avatar_url
-      createdAt
-      updatedAt
-      profileBusinessProfileId
-      owner
-      __typename
-    }
-    business_name
-    category
-    description
-    address
-    phone
-    website
-    price_level
-    languages
-    is_minority_owned
-    is_howard_affiliated
-    verification_status
-    reviews {
-      nextToken
-      __typename
-    }
-    createdAt
-    updatedAt
-    owner
-    __typename
-  }
-}
-` as GeneratedSubscription<
-  APITypes.OnUpdateBusinessProfileSubscriptionVariables,
-  APITypes.OnUpdateBusinessProfileSubscription
->;
-export const onDeleteBusinessProfile = /* GraphQL */ `subscription OnDeleteBusinessProfile(
-  $filter: ModelSubscriptionBusinessProfileFilterInput
-  $owner: String
-) {
-  onDeleteBusinessProfile(filter: $filter, owner: $owner) {
-    id
-    profileID
-    profile {
-      id
-      full_name
-      avatar_url
-      createdAt
-      updatedAt
-      profileBusinessProfileId
-      owner
-      __typename
-    }
-    business_name
-    category
-    description
-    address
-    phone
-    website
-    price_level
-    languages
-    is_minority_owned
-    is_howard_affiliated
-    verification_status
-    reviews {
-      nextToken
-      __typename
-    }
-    createdAt
-    updatedAt
-    owner
-    __typename
-  }
-}
-` as GeneratedSubscription<
-  APITypes.OnDeleteBusinessProfileSubscriptionVariables,
-  APITypes.OnDeleteBusinessProfileSubscription
->;
 export const onCreateProfile = /* GraphQL */ `subscription OnCreateProfile(
   $filter: ModelSubscriptionProfileFilterInput
   $owner: String
@@ -239,11 +113,14 @@ export const onCreateProfile = /* GraphQL */ `subscription OnCreateProfile(
       address
       phone
       website
+      hours
       price_level
       languages
       is_minority_owned
       is_howard_affiliated
       verification_status
+      logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
@@ -289,11 +166,14 @@ export const onUpdateProfile = /* GraphQL */ `subscription OnUpdateProfile(
       address
       phone
       website
+      hours
       price_level
       languages
       is_minority_owned
       is_howard_affiliated
       verification_status
+      logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
@@ -339,11 +219,14 @@ export const onDeleteProfile = /* GraphQL */ `subscription OnDeleteProfile(
       address
       phone
       website
+      hours
       price_level
       languages
       is_minority_owned
       is_howard_affiliated
       verification_status
+      logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
@@ -367,6 +250,141 @@ export const onDeleteProfile = /* GraphQL */ `subscription OnDeleteProfile(
 ` as GeneratedSubscription<
   APITypes.OnDeleteProfileSubscriptionVariables,
   APITypes.OnDeleteProfileSubscription
+>;
+export const onCreateBusinessProfile = /* GraphQL */ `subscription OnCreateBusinessProfile(
+  $filter: ModelSubscriptionBusinessProfileFilterInput
+  $owner: String
+) {
+  onCreateBusinessProfile(filter: $filter, owner: $owner) {
+    id
+    profileID
+    profile {
+      id
+      full_name
+      avatar_url
+      createdAt
+      updatedAt
+      profileBusinessProfileId
+      owner
+      __typename
+    }
+    business_name
+    category
+    description
+    address
+    phone
+    website
+    hours
+    price_level
+    languages
+    is_minority_owned
+    is_howard_affiliated
+    verification_status
+    logo_url
+    website_clicks
+    reviews {
+      nextToken
+      __typename
+    }
+    createdAt
+    updatedAt
+    owner
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnCreateBusinessProfileSubscriptionVariables,
+  APITypes.OnCreateBusinessProfileSubscription
+>;
+export const onUpdateBusinessProfile = /* GraphQL */ `subscription OnUpdateBusinessProfile(
+  $filter: ModelSubscriptionBusinessProfileFilterInput
+  $owner: String
+) {
+  onUpdateBusinessProfile(filter: $filter, owner: $owner) {
+    id
+    profileID
+    profile {
+      id
+      full_name
+      avatar_url
+      createdAt
+      updatedAt
+      profileBusinessProfileId
+      owner
+      __typename
+    }
+    business_name
+    category
+    description
+    address
+    phone
+    website
+    hours
+    price_level
+    languages
+    is_minority_owned
+    is_howard_affiliated
+    verification_status
+    logo_url
+    website_clicks
+    reviews {
+      nextToken
+      __typename
+    }
+    createdAt
+    updatedAt
+    owner
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnUpdateBusinessProfileSubscriptionVariables,
+  APITypes.OnUpdateBusinessProfileSubscription
+>;
+export const onDeleteBusinessProfile = /* GraphQL */ `subscription OnDeleteBusinessProfile(
+  $filter: ModelSubscriptionBusinessProfileFilterInput
+  $owner: String
+) {
+  onDeleteBusinessProfile(filter: $filter, owner: $owner) {
+    id
+    profileID
+    profile {
+      id
+      full_name
+      avatar_url
+      createdAt
+      updatedAt
+      profileBusinessProfileId
+      owner
+      __typename
+    }
+    business_name
+    category
+    description
+    address
+    phone
+    website
+    hours
+    price_level
+    languages
+    is_minority_owned
+    is_howard_affiliated
+    verification_status
+    logo_url
+    website_clicks
+    reviews {
+      nextToken
+      __typename
+    }
+    createdAt
+    updatedAt
+    owner
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnDeleteBusinessProfileSubscriptionVariables,
+  APITypes.OnDeleteBusinessProfileSubscription
 >;
 export const onCreateReview = /* GraphQL */ `subscription OnCreateReview(
   $filter: ModelSubscriptionReviewFilterInput
@@ -397,16 +415,20 @@ export const onCreateReview = /* GraphQL */ `subscription OnCreateReview(
       address
       phone
       website
+      hours
       price_level
       languages
       is_minority_owned
       is_howard_affiliated
       verification_status
+      logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
       __typename
     }
+    review_name
     moderation_status
     createdAt
     updatedAt
@@ -452,16 +474,20 @@ export const onUpdateReview = /* GraphQL */ `subscription OnUpdateReview(
       address
       phone
       website
+      hours
       price_level
       languages
       is_minority_owned
       is_howard_affiliated
       verification_status
+      logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
       __typename
     }
+    review_name
     moderation_status
     createdAt
     updatedAt
@@ -507,16 +533,20 @@ export const onDeleteReview = /* GraphQL */ `subscription OnDeleteReview(
       address
       phone
       website
+      hours
       price_level
       languages
       is_minority_owned
       is_howard_affiliated
       verification_status
+      logo_url
+      website_clicks
       createdAt
       updatedAt
       owner
       __typename
     }
+    review_name
     moderation_status
     createdAt
     updatedAt
@@ -546,6 +576,7 @@ export const onCreateReviewComment = /* GraphQL */ `subscription OnCreateReviewC
       comment
       userID
       businessID
+      review_name
       moderation_status
       createdAt
       updatedAt
@@ -588,6 +619,7 @@ export const onUpdateReviewComment = /* GraphQL */ `subscription OnUpdateReviewC
       comment
       userID
       businessID
+      review_name
       moderation_status
       createdAt
       updatedAt
@@ -630,6 +662,7 @@ export const onDeleteReviewComment = /* GraphQL */ `subscription OnDeleteReviewC
       comment
       userID
       businessID
+      review_name
       moderation_status
       createdAt
       updatedAt

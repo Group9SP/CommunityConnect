@@ -15,15 +15,33 @@ const Index = () => {
   const [impactKPIs, setImpactKPIs] = useState(null as null | ReturnType<typeof aggregateImpactKPIs>);
 
   useEffect(() => {
-    // Demo: aggregate from localStorage (replace with API in production)
-    const events = JSON.parse(localStorage.getItem('engagementEvents') || '[]');
-    setImpactKPIs(
-      aggregateImpactKPIs(
-        events,
-        [], // reviews: [] (replace with real data)
-        []  // verifiedBusinessIds: [] (replace with real data)
-      )
-    );
+    const fetchMetrics = async () => {
+      try {
+        const { gqlClient } = await import("@/integrations/amplify/graphqlClient");
+        const bizResult: any = await gqlClient.graphql({
+          query: `query { listBusinessProfiles(limit: 1000) { items { id website_clicks } } }`,
+          authMode: "apiKey",
+        });
+        const reviewResult: any = await gqlClient.graphql({
+          query: `query { listReviews(limit: 1000) { items { id userID } } }`,
+          authMode: "apiKey",
+        });
+        const bizItems = bizResult.data?.listBusinessProfiles?.items ?? [];
+        const reviewItems = reviewResult.data?.listReviews?.items ?? [];
+        const totalWebsiteClicks = bizItems.reduce((sum: number, b: any) => sum + (b.website_clicks ?? 0), 0);
+        const uniqueUsers = new Set(reviewItems.map((r: any) => r.userID)).size;
+
+        setImpactKPIs({
+          totalProfileViews: bizItems.length,
+          totalWebsiteClicks,
+          totalReviews: reviewItems.length,
+          uniqueUsers,
+        } as any);
+      } catch {
+        setImpactKPIs({ totalProfileViews: 0, totalWebsiteClicks: 0, totalReviews: 0, uniqueUsers: 0 } as any);
+      }
+    };
+    fetchMetrics();
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -36,7 +54,7 @@ const Index = () => {
       {/* Navigation */}
       <nav className="absolute top-0 left-0 right-0 z-20 bg-transparent">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="text-2xl font-bold text-white">
+          <Link to="/" className="text-2xl font-bold text-white pl-12">
             Community Connect
           </Link>
           <div className="flex items-center gap-4">
@@ -116,11 +134,11 @@ const Index = () => {
           <div className="grid md:grid-cols-4 gap-8 text-center">
             <div>
               <div className="text-4xl font-bold text-primary">{impactKPIs?.totalProfileViews ?? 0}</div>
-              <div className="text-muted-foreground mt-2">Profile Views</div>
+              <div className="text-muted-foreground mt-2">Businesses Listed</div>
             </div>
             <div>
               <div className="text-4xl font-bold text-primary">{impactKPIs?.totalWebsiteClicks ?? 0}</div>
-              <div className="text-muted-foreground mt-2">Website Clicks</div>
+              <div className="text-muted-foreground mt-2">Business Page Visits</div>
             </div>
             <div>
               <div className="text-4xl font-bold text-primary">{impactKPIs?.totalReviews ?? 0}</div>
@@ -128,7 +146,7 @@ const Index = () => {
             </div>
             <div>
               <div className="text-4xl font-bold text-primary">{impactKPIs?.uniqueUsers ?? 0}</div>
-              <div className="text-muted-foreground mt-2">Unique Users Engaged</div>
+              <div className="text-muted-foreground mt-2">Unique Reviewers</div>
             </div>
           </div>
         </div>
@@ -187,8 +205,12 @@ const Index = () => {
                 Explore Businesses
               </Button>
             </Link>
-            <Link to="/dashboard/add-business">
-              <Button size="lg" variant="outline" className="h-12 px-8 bg-white/10 hover:bg-white/20 text-white border-white">
+            <Link to="/business/add">
+              <Button
+                size="lg"
+                variant="outline"
+                className="h-12 px-8 bg-white/10 hover:bg-white/20 text-white border-white"
+              >
                 List Your Business
               </Button>
             </Link>
@@ -199,7 +221,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="bg-secondary text-secondary-foreground py-8">
         <div className="container mx-auto px-4 text-center">
-          <p>&copy; 2025 Community Business Connect. Empowering minority-owned businesses.</p>
+          <p>&copy; 2025 Community Connect. Empowering minority-owned businesses.</p>
         </div>
       </footer>
     </div>

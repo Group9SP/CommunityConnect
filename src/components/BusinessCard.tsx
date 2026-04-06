@@ -13,7 +13,9 @@ interface BusinessCardProps {
   priceLevel: number;
   languages: string[];
   location: string;
+  /** F5.1.7 — minority-owned badge (admin-verified + claimed) */
   isVerified: boolean;
+  /** F5.1.7 — Howard badge (admin-verified + claimed) */
   isHowardAffiliated: boolean;
   description: string;
   verificationStatus?: "pending" | "verified" | "rejected";
@@ -44,14 +46,11 @@ export const BusinessCard = ({
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
           <div className="absolute top-3 right-3 flex flex-col gap-2">
-            {verificationStatus === "verified" && (
-              <Badge className="bg-[hsl(var(--verified-badge))] text-white">✓ Verified</Badge>
-            )}
-            {verificationStatus === "pending" && (
-              <Badge className="bg-yellow-500 text-white">Verification Pending</Badge>
-            )}
-            {verificationStatus === "rejected" && (
-              <Badge className="bg-destructive text-white">Verification Rejected</Badge>
+            {/* Highlight verified listings so users can quickly spot trusted businesses. */}
+            {isVerified && (
+              <Badge className="bg-[hsl(var(--verified-badge))] text-white">
+                ✓ Verified
+              </Badge>
             )}
             {isHowardAffiliated && (
               <Badge className="bg-accent text-accent-foreground">Howard Affiliated</Badge>

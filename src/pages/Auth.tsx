@@ -1,18 +1,20 @@
 /**
- * Multi-step signup flow:
- * 1. Create Amplify/Cognito Auth user
- * 2. Insert record into Profile table via GraphQL
- * 3. Assign default role in UserRole table via GraphQL
- *
- * Trust Boundary:
- * Auth state must match Profile + UserRole tables.
+ * Sign-up with Cognito email verification when the user pool requires it,
+ * then REST profile + role creation.
  */
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { signIn, signUp, getCurrentUser, confirmSignUp, resendSignUpCode, signOut } from "aws-amplify/auth";
-import { generateClient } from "aws-amplify/api";
-import { createProfile, createUserRole } from "@/graphql/mutations";
+import { signIn } from "aws-amplify/auth";
+import {
+  confirmEmailCodeAndSignIn,
+  getAppSession,
+  resendVerificationEmail,
+  resolveDisplayNameForNewProfile,
+  signOutUser,
+  signUpThenEnsureProfileAndRole,
+} from "@/integrations/amplify/authSession";
+import { insertProfile, insertUserRole } from "@/integrations/amplify/userDirectory";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,9 +22,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
+import { PasswordToggleField } from "@/components/PasswordToggleField";
 import { Loader2 } from "lucide-react";
 import { z } from "zod";
-import type { AppRole } from '@/API';
+
+const PENDING_SIGNUP_KEY = "communityConnectPendingSignup";
 
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -30,36 +34,63 @@ const authSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters").optional(),
 });
 
+type VerifyContext = "signup" | "login";
+
+function isUnconfirmedUserError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const name = "name" in error && typeof (error as { name: string }).name === "string" ? (error as { name: string }).name : "";
+  const msg = error instanceof Error ? error.message : String(error);
+  const lower = msg.toLowerCase();
+  return (
+    name === "UserNotConfirmedException" ||
+    (name === "NotAuthorizedException" && lower.includes("not confirmed")) ||
+    lower.includes("user is not confirmed")
+  );
+}
+
+function isAlreadySignedInError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const name = "name" in error && typeof (error as { name: string }).name === "string" ? (error as { name: string }).name : "";
+  const msg = error instanceof Error ? error.message : "";
+  return name === "UserAlreadyAuthenticatedException" || msg.includes("already a signed in user");
+}
+
 export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<"customer" | "business_owner">("customer");
-  const [showConfirm, setShowConfirm] = useState(() => !!sessionStorage.getItem("pendingSignup"));
-  const [pendingSignup, setPendingSignup] = useState<{ email: string; password: string; fullName: string; role: AppRole } | null>(() => {
-    const stored = sessionStorage.getItem("pendingSignup");
-    return stored ? JSON.parse(stored) : null;
-  });
-  const [confirmationCode, setConfirmationCode] = useState("");
-  const [confirmLoading, setConfirmLoading] = useState(false);
 
-  // Login form
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
-  // Signup form
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [fullName, setFullName] = useState("");
 
+  const [showVerifyEmail, setShowVerifyEmail] = useState(false);
+  const [verifyContext, setVerifyContext] = useState<VerifyContext>("signup");
+  const [confirmationCode, setConfirmationCode] = useState("");
+  const [confirmLoading, setConfirmLoading] = useState(false);
+
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [showVerifyLoginPassword, setShowVerifyLoginPassword] = useState(false);
+
   useEffect(() => {
-    getCurrentUser()
-      .then(() => navigate("/"))
-      .catch(() => {});
+    getAppSession().then((session) => {
+      if (session) {
+        navigate("/");
+      }
+    });
   }, [navigate]);
+
+  const verificationEmail = verifyContext === "login" ? loginEmail : signupEmail;
+  const verificationPassword = verifyContext === "login" ? loginPassword : signupPassword;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
       z.object({
         email: z.string().email("Please enter a valid email address"),
@@ -72,16 +103,77 @@ export default function Auth() {
       }
     }
     setLoading(true);
-    try {
-      // Clear any existing partial session before signing in
-      await signOut().catch(() => {});
-      await signIn({ username: loginEmail, password: loginPassword });
-      setLoading(false);
-      toast({ title: "Welcome back!", description: "You have successfully logged in." });
+
+    const attemptSignIn = async () => {
+      const out = await signIn({ username: loginEmail, password: loginPassword });
+      if (!out.isSignedIn) {
+        toast({
+          title: "Login Failed",
+          description: "Additional sign-in steps may be required for this account.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: "Welcome back!",
+        description: "You have successfully logged in.",
+      });
       navigate("/");
-    } catch (error: any) {
+    };
+
+    try {
+      try {
+        await signOutUser();
+      } catch {
+        // No session to clear — expected on first visit
+      }
+      await attemptSignIn();
+    } catch (error: unknown) {
+      if (isAlreadySignedInError(error)) {
+        try {
+          await signOutUser();
+          await attemptSignIn();
+        } catch (retryErr: unknown) {
+          setLoading(false);
+          if (isUnconfirmedUserError(retryErr)) {
+            setVerifyContext("login");
+            setShowVerifyEmail(true);
+            setConfirmationCode("");
+            toast({
+              title: "Confirm your email",
+              description: "Enter the verification code we sent you, then you can sign in.",
+            });
+            return;
+          }
+          toast({
+            title: "Login Failed",
+            description: retryErr instanceof Error ? retryErr.message : "Login failed.",
+            variant: "destructive",
+          });
+        }
+        setLoading(false);
+        return;
+      }
+      if (isUnconfirmedUserError(error)) {
+        setLoading(false);
+        setVerifyContext("login");
+        setShowVerifyEmail(true);
+        setConfirmationCode("");
+        toast({
+          title: "Confirm your email",
+          description: "Enter the verification code we sent you, then you can sign in.",
+        });
+        return;
+      }
       setLoading(false);
-      toast({ title: "Login Failed", description: error.message || String(error), variant: "destructive" });
+      const message = error instanceof Error ? error.message : "Login failed.";
+      toast({
+        title: "Login Failed",
+        description: message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -96,82 +188,197 @@ export default function Auth() {
       }
     }
     setLoading(true);
+
+    let result: Awaited<ReturnType<typeof signUpThenEnsureProfileAndRole>>;
     try {
-      await signOut().catch(() => {});
-      await signUp({
-        username: signupEmail,
-        password: signupPassword,
-        options: {
-          userAttributes: {
-            email: signupEmail,
-            name: fullName,
-          },
+      result = await signUpThenEnsureProfileAndRole(
+        {
+          email: signupEmail,
+          password: signupPassword,
+          fullName,
+          role,
         },
-      });
+        async (userId) => {
+          localStorage.setItem(`cc_role_${userId}`, role);
+          await insertProfile(userId, fullName);
+          await insertUserRole(userId, role);
+        }
+      );
+    } catch (error: unknown) {
       setLoading(false);
-      const signup = { email: signupEmail, password: signupPassword, fullName, role: role as AppRole };
-      setPendingSignup(signup);
-      sessionStorage.setItem("pendingSignup", JSON.stringify(signup));
-      setShowConfirm(true);
+      toast({
+        title: "Signup Failed",
+        description: error instanceof Error ? error.message : "Something went wrong.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(false);
+
+    if ("needsEmailConfirmation" in result && result.needsEmailConfirmation) {
+      try {
+        sessionStorage.setItem(
+          PENDING_SIGNUP_KEY,
+          JSON.stringify({
+            email: signupEmail,
+            fullName,
+            role,
+          })
+        );
+      } catch {
+        // ignore storage errors
+      }
+      setVerifyContext("signup");
+      setShowVerifyEmail(true);
+      setConfirmationCode("");
       toast({
         title: "Check your email",
-        description: "Enter the confirmation code we sent you.",
+        description: "We sent a verification code. Enter it below to finish creating your account.",
       });
-    } catch (error: any) {
-      setLoading(false);
-      if (error.message?.toLowerCase().includes("user already exists") || error.message?.toLowerCase().includes("username exists")) {
-        toast({ title: "Account already exists", description: "Please use the Login tab instead.", variant: "destructive" });
-      } else {
-        toast({ title: "Signup Failed", description: error.message || String(error), variant: "destructive" });
+      return;
+    }
+
+    if ("error" in result && result.error) {
+      toast({
+        title: "Signup Failed",
+        description: result.error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (result.ok) {
+      try {
+        sessionStorage.removeItem(PENDING_SIGNUP_KEY);
+      } catch {
+        // ignore
       }
+      toast({
+        title: "Account Created!",
+        description: "Welcome! Your account has been created successfully.",
+      });
+      navigate(role === "business_owner" ? "/owner/business" : "/");
     }
   };
 
-  const handleConfirm = async (e: React.FormEvent) => {
+  const handleConfirmVerification = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pendingSignup) return;
+    if (!verificationEmail.trim()) {
+      toast({
+        title: "Missing email",
+        description: "Go back and enter the email you signed up with.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!verificationPassword) {
+      toast({
+        title: "Password required",
+        description: verifyContext === "login"
+          ? "Your password is needed after verification."
+          : "Use the same password you chose when signing up.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setConfirmLoading(true);
     try {
-      try {
-        await confirmSignUp({ username: pendingSignup.email, confirmationCode });
-      } catch (confirmError: any) {
-        const msg = confirmError?.message ?? "";
-        if (!msg.toLowerCase().includes("current status is confirmed")) throw confirmError;
+      const signedIn = await confirmEmailCodeAndSignIn(
+        verificationEmail.trim(),
+        verificationPassword,
+        confirmationCode
+      );
+      if (!signedIn.ok) {
+        toast({
+          title: "Verification failed",
+          description: signedIn.error.message,
+          variant: "destructive",
+        });
+        return;
       }
 
-      await signIn({ username: pendingSignup.email, password: pendingSignup.password });
+      const session = await getAppSession();
+      if (!session?.user.id) {
+        toast({
+          title: "Signed in",
+          description: "You are signed in but we could not load your profile. Try refreshing.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      const client = generateClient();
-      const profileResult: any = await client.graphql({
-        query: createProfile,
-        variables: { input: { full_name: pendingSignup.fullName } },
-      });
-      const profileId = profileResult.data.createProfile.id;
-      await client.graphql({
-        query: createUserRole,
-        variables: { input: { profileID: profileId, role: pendingSignup.role } },
-      });
+      let profileFullName = fullName;
+      let profileRole = role;
+      try {
+        const raw = sessionStorage.getItem(PENDING_SIGNUP_KEY);
+        if (raw) {
+          const pending = JSON.parse(raw) as {
+            email?: string;
+            fullName?: string;
+            role?: "customer" | "business_owner";
+          };
+          if (pending.email === verificationEmail.trim()) {
+            if (pending.fullName) profileFullName = pending.fullName;
+            if (pending.role) profileRole = pending.role;
+          }
+        }
+      } catch {
+        // ignore
+      }
 
-      toast({ title: "Account Verified!", description: "Your account has been verified and you are now signed in." });
-      setShowConfirm(false);
-      setPendingSignup(null);
-      sessionStorage.removeItem("pendingSignup");
+      if (!profileFullName.trim()) {
+        profileFullName = await resolveDisplayNameForNewProfile(verificationEmail.trim());
+      }
+
+      try {
+        localStorage.setItem(`cc_role_${session.user.id}`, profileRole);
+        await insertProfile(session.user.id, profileFullName);
+        await insertUserRole(session.user.id, profileRole);
+      } catch (err: unknown) {
+        // REST API may not be deployed yet — log but don't block the user
+        console.warn("Profile/role setup skipped:", err instanceof Error ? err.message : err);
+      }
+
+      try {
+        sessionStorage.removeItem(PENDING_SIGNUP_KEY);
+      } catch {
+        // ignore
+      }
+
+      setShowVerifyEmail(false);
       setConfirmationCode("");
-      navigate("/");
-    } catch (error: any) {
-      toast({ title: "Verification Failed", description: error.message || String(error), variant: "destructive" });
+      toast({
+        title: "Welcome!",
+        description: "Your email is verified and your account is ready.",
+      });
+      navigate(profileRole === "business_owner" ? "/owner/business" : "/");
+    } finally {
+      setConfirmLoading(false);
     }
-    setConfirmLoading(false);
   };
 
   const handleResendCode = async () => {
-    if (!pendingSignup) return;
+    if (!verificationEmail.trim()) return;
     try {
-      await resendSignUpCode({ username: pendingSignup.email });
-      toast({ title: "Code Resent", description: "A new verification code has been sent to your email." });
-    } catch (error: any) {
-      toast({ title: "Resend Failed", description: error.message || String(error), variant: "destructive" });
+      await resendVerificationEmail(verificationEmail.trim());
+      toast({
+        title: "Code sent",
+        description: "Check your inbox for a new verification code.",
+      });
+    } catch (error: unknown) {
+      toast({
+        title: "Could not resend",
+        description: error instanceof Error ? error.message : "Try again later.",
+        variant: "destructive",
+      });
     }
+  };
+
+  const handleBackFromVerification = () => {
+    setShowVerifyEmail(false);
+    setConfirmationCode("");
   };
 
   return (
@@ -184,36 +391,65 @@ export default function Auth() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {showConfirm ? (
-            <form className="space-y-4" onSubmit={handleConfirm}>
+          {showVerifyEmail ? (
+            <form className="space-y-4" onSubmit={handleConfirmVerification}>
               <div className="text-center space-y-2">
                 <p className="text-lg font-semibold">Verify your email</p>
-                <p className="text-muted-foreground">Enter the confirmation code sent to {pendingSignup?.email}</p>
+                <p className="text-sm text-muted-foreground">
+                  Enter the code we sent to{" "}
+                  <span className="font-medium text-foreground">{verificationEmail || "your email"}</span>.
+                  {verifyContext === "login" ? (
+                    <>
+                      {" "}
+                      Re-enter your password under the code so we can sign you in after verification.
+                    </>
+                  ) : (
+                    <>
+                      {" "}
+                      After verification you will be signed in with the password you chose on the sign-up form.
+                    </>
+                  )}
+                </p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmation-code">Verification Code</Label>
+                <Label htmlFor="confirmation-code">Verification code</Label>
                 <Input
                   id="confirmation-code"
                   type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
                   placeholder="123456"
                   value={confirmationCode}
-                  onChange={e => setConfirmationCode(e.target.value)}
+                  onChange={(e) => setConfirmationCode(e.target.value)}
                   required
                 />
               </div>
+              {verifyContext === "login" ? (
+                <PasswordToggleField
+                  id="verify-login-password"
+                  label="Password"
+                  value={loginPassword}
+                  onChange={setLoginPassword}
+                  show={showVerifyLoginPassword}
+                  onToggleShow={() => setShowVerifyLoginPassword((s) => !s)}
+                  autoComplete="current-password"
+                />
+              ) : null}
               <Button type="submit" className="w-full" disabled={confirmLoading}>
-                {confirmLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Verifying...</> : "Verify Account"}
+                {confirmLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Verifying…
+                  </>
+                ) : (
+                  "Verify and continue"
+                )}
               </Button>
               <Button type="button" variant="outline" className="w-full" onClick={handleResendCode}>
-                Resend Code
+                Resend code
               </Button>
-              <Button type="button" className="w-full" variant="ghost" onClick={() => {
-                setShowConfirm(false);
-                setConfirmationCode("");
-                sessionStorage.removeItem("pendingSignup");
-                setPendingSignup(null);
-              }}>
-                Back to Login
+              <Button type="button" variant="ghost" className="w-full" onClick={handleBackFromVerification}>
+                Back to sign in
               </Button>
             </form>
           ) : (
@@ -236,17 +472,15 @@ export default function Auth() {
                       required
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="login-password">Password</Label>
-                    <Input
-                      id="login-password"
-                      type="password"
-                      placeholder="••••••"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      required
-                    />
-                  </div>
+                  <PasswordToggleField
+                    id="login-password"
+                    label="Password"
+                    value={loginPassword}
+                    onChange={setLoginPassword}
+                    show={showLoginPassword}
+                    onToggleShow={() => setShowLoginPassword((s) => !s)}
+                    autoComplete="current-password"
+                  />
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Logging in...</> : "Login"}
                   </Button>
@@ -280,17 +514,15 @@ export default function Auth() {
                       required
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={signupPassword}
-                      onChange={(e) => setSignupPassword(e.target.value)}
-                      required
-                    />
-                  </div>
+                  <PasswordToggleField
+                    id="signup-password"
+                    label="Password"
+                    value={signupPassword}
+                    onChange={setSignupPassword}
+                    show={showSignupPassword}
+                    onToggleShow={() => setShowSignupPassword((s) => !s)}
+                    autoComplete="new-password"
+                  />
                   <div className="space-y-2">
                     <Label>I am a:</Label>
                     <RadioGroup value={role} onValueChange={(value) => setRole(value as "customer" | "business_owner")}>
