@@ -11,6 +11,7 @@ export default function PasswordReset() {
   const [step, setStep] = useState<"request" | "confirm">("request");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleRequest = async (e: React.FormEvent) => {

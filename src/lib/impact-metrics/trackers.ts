@@ -37,3 +37,4 @@ export const recordImpactEvent = async (
     console.error('[Impact] Failed to log event:', error);
   }
 };
+ 

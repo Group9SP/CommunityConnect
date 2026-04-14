@@ -51,6 +51,7 @@ export async function fetchImpactMetrics(): Promise<ImpactMetrics> {
     reviews.map((r) => r?.businessID).filter(Boolean)
   ).size;
   const communityReach = totalBusinesses + businessesWithReviews;
+  
 
   return {
     totalBusinesses,
