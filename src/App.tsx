@@ -59,6 +59,7 @@ const App = () => (
               }
             />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/password-reset" element={<PasswordReset />} />
             <Route
               path="/admin"
               element={

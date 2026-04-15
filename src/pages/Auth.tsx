@@ -30,7 +30,7 @@ const PENDING_SIGNUP_KEY = "communityConnectPendingSignup";
 
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
   fullName: z.string().min(2, "Full name must be at least 2 characters").optional(),
 });
 
@@ -92,17 +92,13 @@ export default function Auth() {
     e.preventDefault();
 
     try {
-      authSchema.pick({ email: true, password: true }).parse({
-        email: loginEmail,
-        password: loginPassword,
-      });
+      z.object({
+        email: z.string().email("Please enter a valid email address"),
+        password: z.string().min(1, "Please enter your password"),
+      }).parse({ email: loginEmail, password: loginPassword });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        toast({
-          title: "Validation Error",
-          description: error.errors[0].message,
-          variant: "destructive",
-        });
+        toast({ title: "Validation Error", description: error.errors[0].message, variant: "destructive" });
         return;
       }
     }
@@ -184,18 +180,10 @@ export default function Auth() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      authSchema.parse({
-        email: signupEmail,
-        password: signupPassword,
-        fullName: fullName,
-      });
+      authSchema.parse({ email: signupEmail, password: signupPassword, fullName });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        toast({
-          title: "Validation Error",
-          description: error.errors[0].message,
-          variant: "destructive",
-        });
+        toast({ title: "Validation Error", description: error.errors[0].message, variant: "destructive" });
         return;
       }
     }
@@ -494,14 +482,7 @@ export default function Auth() {
                     autoComplete="current-password"
                   />
                   <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Logging in...
-                      </>
-                    ) : (
-                      "Login"
-                    )}
+                    {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Logging in...</> : "Login"}
                   </Button>
                   <Button type="button" variant="link" className="w-full mt-2" onClick={() => navigate("/password-reset")}>
                     Forgot password?
@@ -560,14 +541,7 @@ export default function Auth() {
                     </RadioGroup>
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating account...
-                      </>
-                    ) : (
-                      "Create Account"
-                    )}
+                    {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating account...</> : "Create Account"}
                   </Button>
                 </form>
               </TabsContent>
