@@ -100,6 +100,58 @@ export const STATIC_BUSINESSES: Business[] = [
             "Full-service salon specializing in natural hair care and protective styling. Howard student-owned.",
         createdAt: "2024-04-20T00:00:00Z",
     },
+    // ── Lovable.dev Feature Extension (Lab 6) ──────────────────────────────
+    {
+        id: "biz-005",
+        name: "Bison Books & Brew",
+        category: "Bookstore & Cafe",
+        image: "/placeholder.svg",
+        rating: 4.8,
+        reviewCount: 0,
+        priceLevel: 2,
+        languages: ["EN"],
+        location: "2100 Georgia Ave NW, Washington, DC 20001",
+        isVerified: true,
+        isHowardAffiliated: true,
+        isMinorityOwned: true,
+        description:
+            "Howard-affiliated independent bookstore and coffee bar curating Black authors, academic texts, and community reading events.",
+        createdAt: "2025-01-01T00:00:00Z",
+    },
+    {
+        id: "biz-006",
+        name: "Mecca Tech Repair",
+        category: "Technology & Repair",
+        image: "/placeholder.svg",
+        rating: 4.7,
+        reviewCount: 0,
+        priceLevel: 2,
+        languages: ["EN"],
+        location: "1840 7th St NW, Washington, DC 20001",
+        isVerified: true,
+        isHowardAffiliated: true,
+        isMinorityOwned: true,
+        description:
+            "Student-founded tech shop offering laptop, phone, and tablet repair plus refurbished device sales for the Howard and Shaw community.",
+        createdAt: "2025-01-02T00:00:00Z",
+    },
+    {
+        id: "biz-007",
+        name: "Sankofa Sweets Bakery",
+        category: "Bakery & Desserts",
+        image: "/placeholder.svg",
+        rating: 4.9,
+        reviewCount: 0,
+        priceLevel: 1,
+        languages: ["EN"],
+        location: "1320 U St NW, Washington, DC 20009",
+        isVerified: true,
+        isHowardAffiliated: false,
+        isMinorityOwned: true,
+        description:
+            "Family-owned bakery specializing in West African and Southern-inspired pastries, custom cakes, and catering for community events.",
+        createdAt: "2025-01-03T00:00:00Z",
+    },
 ];
 
 // ---------------------------------------------------------------------------

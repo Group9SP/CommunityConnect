@@ -87,6 +87,7 @@ export default function AddBusiness() {
         address: values.address?.trim() || undefined,
         phone: values.phone?.trim() || undefined,
         website: values.website?.trim() || undefined,
+        hours: values.hours?.trim() || undefined,
         price_level: values.price_level,
         languages: values.languages
           .split(",")

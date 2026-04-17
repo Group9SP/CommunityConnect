@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { signOutUser } from "@/integrations/amplify/authSession";
+import { getBusinessProfileForUser } from "@/integrations/amplify/businessProfiles";
 import { useSession } from "@/features/auth/hooks/useSession";
 
 export default function AuthButton() {
@@ -62,7 +63,15 @@ export default function AuthButton() {
           </DropdownMenuItem>
         )}
         {isBusinessOwner && (
-          <DropdownMenuItem onClick={() => navigate("/owner/business")}>
+          <DropdownMenuItem onClick={async () => {
+            if (!user?.id) return;
+            const biz = await getBusinessProfileForUser(user.id);
+            if (biz?.id) {
+              navigate(`/business/${biz.id}/manage`);
+            } else {
+              navigate("/business/add");
+            }
+          }}>
             <Building2 className="mr-2 h-4 w-4" />
             My business
           </DropdownMenuItem>

@@ -79,7 +79,7 @@ export class DuplicateBusinessProfileError extends Error {
 function mapItem(item: Record<string, unknown>): BusinessProfileRow {
   return {
     id: item.id as string,
-    user_id: (item.profileID ?? item.owner ?? "") as string,
+    user_id: ((item.profileID ?? (item.owner as string)?.split("::")[0] ?? "") as string),
     business_name: item.business_name as string,
     category: item.category as string,
     description: (item.description as string | null) ?? null,
@@ -101,13 +101,17 @@ function mapItem(item: Record<string, unknown>): BusinessProfileRow {
 }
 
 export async function getBusinessProfileForUser(userId: string): Promise<BusinessProfileRow | null> {
+  // Fetch all and filter client-side — owner field format is "userId::userId"
   const result = await gqlClient.graphql({
     query: listBusinessProfiles,
-    variables: { filter: { profileID: { eq: userId } }, limit: 1 },
+    variables: { limit: 100 },
   });
   const items = result.data?.listBusinessProfiles?.items ?? [];
-  if (items.length === 0) return null;
-  return mapItem(items[0] as Record<string, unknown>);
+  const match = items.find((item: any) => 
+    (item.owner as string)?.includes(userId) || item.profileID === userId
+  );
+  if (!match) return null;
+  return mapItem(match as Record<string, unknown>);
 }
 
 export async function createBusinessProfile(

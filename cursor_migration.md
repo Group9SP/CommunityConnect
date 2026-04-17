@@ -1,177 +1,279 @@
-# CommunityConnect — Lovable Migration Guide & Codebase Overview
+# Codebase Migration Guide: Disconnecting from Lovable.dev
 
-This document provides an overview of the CommunityConnect (Minority X-Change) codebase and step-by-step instructions for running it as a standalone local development project after disconnecting from Lovable.dev.
+## Overview
 
----
+This document provides a comprehensive guide to migrating this codebase from Lovable.dev to a fully independent local development environment. The application is a **Minority X-Change** platform - a marketplace for discovering and supporting verified minority-owned and Howard University-affiliated businesses.
 
 ## Codebase Overview
 
-### What This App Does
+### Application Purpose
+**Minority X-Change** (also branded as "Community Connect") is a web application that:
+- Showcases verified minority-owned businesses
+- Connects conscious consumers with authentic entrepreneurs
+- Supports Howard University-affiliated businesses
+- Provides business discovery, reviews, and verification features
 
-**Minority X-Change** is a marketplace platform for discovering and supporting verified minority-owned and Howard University–affiliated businesses. Users can browse businesses, view details, leave reviews, and business owners can register and manage their listings.
-
-### Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| Build | Vite 5 |
-| Language | TypeScript |
-| UI | React 18 |
-| Components | shadcn/ui (Radix UI primitives) |
-| Styling | Tailwind CSS |
-| Backend | Supabase (PostgreSQL, Auth) |
-| State | React Query (TanStack Query) |
-| Routing | React Router v6 |
+### Technology Stack
+- **Frontend Framework**: React 18.3.1 with TypeScript
+- **Build Tool**: Vite 5.4.19
+- **Routing**: React Router DOM 6.30.1
+- **UI Components**: shadcn-ui (Radix UI primitives)
+- **Styling**: Tailwind CSS 3.4.17
+- **State Management**: TanStack Query (React Query) 5.83.0
+- **Backend/Database**: Supabase (PostgreSQL)
+- **Form Handling**: React Hook Form 7.61.1 + Zod 3.25.76
+- **Icons**: Lucide React
+- **Charts**: Recharts 2.15.4
 
 ### Project Structure
-
 ```
-CommunityConnect/
+equity-spot-38895/
 ├── src/
-│   ├── App.tsx                 # App shell, routes, providers
-│   ├── main.tsx                # Entry point
-│   ├── vite-env.d.ts           # Vite env typings
-│   ├── assets/                 # Images, static files
-│   ├── components/
-│   │   ├── ui/                 # shadcn/ui components (40+ components)
-│   │   ├── AuthButton.tsx      # Auth state & login/logout button
-│   │   ├── BusinessCard.tsx    # Business listing card
-│   │   ├── FilterSidebar.tsx   # Browse filters
-│   │   └── ReviewCard.tsx      # Review display
-│   ├── hooks/
-│   │   ├── use-mobile.tsx      # Mobile detection
-│   │   └── use-toast.ts        # Toast notifications
-│   ├── integrations/supabase/
-│   │   ├── client.ts           # Supabase client (uses env vars)
-│   │   └── types.ts            # Database types (currently stub)
-│   ├── lib/utils.ts            # cn() and utilities
-│   ├── pages/
-│   │   ├── Index.tsx           # Landing page
-│   │   ├── Browse.tsx          # Business listing with filters
-│   │   ├── BusinessDetail.tsx  # Single business view
-│   │   ├── Auth.tsx            # Login/signup/verification
-│   │   └── NotFound.tsx        # 404 page
-│   └── types/
-│       └── business-filters.ts
+│   ├── components/          # React components
+│   │   ├── ui/              # shadcn-ui components
+│   │   ├── AuthButton.tsx
+│   │   ├── BusinessCard.tsx
+│   │   ├── FilterSidebar.tsx
+│   │   └── ReviewCard.tsx
+│   ├── pages/               # Route pages
+│   │   ├── Index.tsx        # Landing page
+│   │   ├── Browse.tsx       # Business listing page
+│   │   ├── BusinessDetail.tsx
+│   │   ├── Auth.tsx         # Authentication page
+│   │   └── NotFound.tsx
+│   ├── integrations/
+│   │   └── supabase/        # Supabase client & types
+│   ├── hooks/               # Custom React hooks
+│   ├── lib/                 # Utility functions
+│   ├── assets/              # Static assets
+│   ├── App.tsx              # Main app component
+│   ├── main.tsx             # Entry point
+│   └── index.css            # Global styles
 ├── supabase/
-│   ├── config.toml             # Supabase local config
-│   └── migrations/             # SQL migrations
-├── public/                     # Static assets
-├── index.html
-├── vite.config.ts
-├── tailwind.config.ts
-├── postcss.config.js
-├── tsconfig.json
-└── package.json
+│   └── migrations/          # Database migrations
+├── public/                  # Public assets
+├── index.html               # HTML template
+├── vite.config.ts           # Vite configuration
+├── tailwind.config.ts       # Tailwind configuration
+├── tsconfig.app.json        # TypeScript configuration
+├── package.json             # Dependencies
+└── .env                     # Environment variables
 ```
 
-### Routes
+### Key Features
+1. **Business Discovery**: Browse and search minority-owned businesses
+2. **Business Profiles**: Detailed business information with reviews
+3. **Authentication**: User signup/login with Supabase Auth
+4. **Verification System**: Business verification status workflow
+5. **Reviews & Ratings**: User reviews for businesses
+6. **Filtering**: Filter businesses by category, location, etc.
 
-| Path | Page | Description |
-|------|------|-------------|
-| `/` | Index | Landing page with hero, search, featured businesses |
-| `/browse` | Browse | Business listing with filters |
-| `/business/:id` | BusinessDetail | Single business detail and reviews |
-| `/auth` | Auth | Login, signup, email verification |
-| `*` | NotFound | 404 fallback |
+### External Dependencies
+- **Supabase**: Backend-as-a-Service (Database, Auth, Storage)
+  - Project ID: `gfofximpghlnjixdffkx`
+  - URL: `https://gfofximpghlnjixdffkx.supabase.co`
+  - Environment variables required: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`
 
-### Data Model (Supabase)
+## Lovable.dev Dependencies Identified
 
-- **profiles** — User profiles (full_name, avatar_url)
-- **user_roles** — Role linking (business_owner, customer)
-- **business_profiles** — Business info (name, category, description, verification_status)
-- **reviews** — Reviews for businesses (if defined in later migrations)
-- RLS policies restrict access by role and ownership
+The following Lovable.dev-specific dependencies were found:
 
-### Environment Variables
+1. **`lovable-tagger` package** (devDependency)
+   - Location: `package.json` line 77
+   - Usage: `vite.config.ts` lines 4, 12
+   - Purpose: Development tool for component tagging (Lovable-specific)
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `VITE_SUPABASE_URL` | Yes | Supabase project URL |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | Yes | Supabase anon/public key |
+2. **README.md references**
+   - Multiple references to Lovable.dev URLs and workflows
+   - Instructions for using Lovable platform
 
----
+3. **index.html meta tags**
+   - Open Graph image: `https://lovable.dev/opengraph-image-p98pqg.png`
+   - Twitter site: `@lovable_dev`
+   - Twitter image: `https://lovable.dev/opengraph-image-p98pqg.png`
 
-## Step-by-Step: Disconnect Lovable & Run Locally
+## Migration Steps
 
-### Step 1: Remove Lovable Dependencies
+### Step 1: Remove Lovable Tagger from Vite Configuration
 
-**vite.config.ts**
+**File**: `vite.config.ts`
 
-- Remove the `lovable-tagger` import and plugin.
-- Use a simple plugins array: `[react()]`.
+Remove the `lovable-tagger` import and usage:
+- Remove import statement: `import { componentTagger } from "lovable-tagger";`
+- Remove from plugins array: `mode === "development" && componentTagger()`
 
-**package.json**
+**Result**: The vite.config.ts will only use the React plugin.
 
-- Remove `lovable-tagger` from `devDependencies`.
+### Step 2: Remove Lovable Tagger Package
 
-### Step 2: Update Meta Tags (index.html)
+**File**: `package.json`
 
-- Remove `og:image` and `twitter:image` that point to lovable.dev.
-- Optionally add your own social preview images later.
+Remove from devDependencies:
+- Remove: `"lovable-tagger": "^1.1.11"`
 
-### Step 3: Replace README
+**Action Required**: Run `npm install` after editing package.json to update node_modules.
 
-- Replace Lovable-focused README with project-specific setup instructions.
-- Document local dev commands, env vars, and scripts.
+### Step 3: Update README.md
 
-### Step 4: Install Dependencies & Run
+**File**: `README.md`
 
-```sh
-cd /Users/khandieanijah-obi/Documents/SeniorProject/CommunityConnect
+Replace Lovable-specific content with standard project documentation:
+- Remove Lovable project URL references
+- Remove Lovable-specific editing instructions
+- Add project-specific setup instructions
+- Update deployment instructions to be platform-agnostic
+
+### Step 4: Update index.html Meta Tags
+
+**File**: `index.html`
+
+Replace Lovable-specific meta tags:
+- Replace Open Graph image URL with a project-specific image
+- Update Twitter site handle (or remove if not applicable)
+- Update Twitter image URL
+
+**Note**: You'll need to host your own Open Graph image or remove these tags temporarily.
+
+### Step 5: Verify Environment Variables
+
+**File**: `.env`
+
+Ensure the following variables are set:
+```
+VITE_SUPABASE_URL=https://gfofximpghlnjixdffkx.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=<your-key>
+```
+
+**Note**: The `.env` file already exists with Supabase credentials. Verify these are correct for your environment.
+
+### Step 6: Install Dependencies
+
+Run the following command to install all dependencies (without lovable-tagger):
+```bash
 npm install
+```
+
+### Step 7: Start Development Server
+
+Run the development server:
+```bash
 npm run dev
 ```
 
-### Step 5: Configure Environment
+The application should start on `http://localhost:8080` (as configured in vite.config.ts).
 
-Ensure `.env` exists with:
+### Step 8: Verify Application Functionality
 
+Test the following:
+1. ✅ Application starts without errors
+2. ✅ Homepage loads correctly
+3. ✅ Navigation works
+4. ✅ Authentication flow works
+5. ✅ Business browsing works
+6. ✅ Supabase connection is successful
+
+## Post-Migration Checklist
+
+- [ ] Remove `lovable-tagger` from vite.config.ts
+- [ ] Remove `lovable-tagger` from package.json
+- [ ] Run `npm install` to update dependencies
+- [ ] Update README.md with project-specific documentation
+- [ ] Update index.html meta tags
+- [ ] Verify .env file has correct Supabase credentials
+- [ ] Test application runs locally (`npm run dev`)
+- [ ] Test build process (`npm run build`)
+- [ ] Verify all routes work correctly
+- [ ] Test Supabase integration (auth, database queries)
+
+## Development Workflow
+
+### Starting the Development Server
+```bash
+npm run dev
 ```
-VITE_SUPABASE_URL=https://gfofximpghlnjixdffkx.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=<your-anon-key>
-```
 
----
-
-## What Was Changed (Migration Summary)
-
-| File | Change |
-|------|--------|
-| `vite.config.ts` | Removed `lovable-tagger` import and `componentTagger()` plugin |
-| `package.json` | Removed `lovable-tagger` from devDependencies |
-| `index.html` | Removed Lovable og/twitter meta tags |
-| `README.md` | Replaced with project-specific local dev docs |
-
----
-
-## Running the App
-
-```sh
-# Development
-npm run dev          # http://localhost:8080
-
-# Production build
+### Building for Production
+```bash
 npm run build
-npm run preview      # Preview production build
+```
 
-# Linting
+### Preview Production Build
+```bash
+npm run preview
+```
+
+### Linting
+```bash
 npm run lint
 ```
 
+## Environment Setup
+
+### Prerequisites
+- Node.js (v18 or higher recommended)
+- npm (comes with Node.js)
+- Git
+
+### Initial Setup
+1. Clone the repository
+2. Navigate to project directory: `cd equity-spot-38895`
+3. Install dependencies: `npm install`
+4. Set up environment variables (`.env` file already exists)
+5. Start development server: `npm run dev`
+
+## Database Setup
+
+The project uses Supabase for the backend. The database migrations are located in `supabase/migrations/`.
+
+To set up the database:
+1. Ensure you have access to the Supabase project
+2. Run migrations if needed (usually handled by Supabase automatically)
+3. Verify database schema matches the TypeScript types in `src/integrations/supabase/types.ts`
+
+## Deployment Considerations
+
+After migration, you can deploy this application to:
+- **Vercel**: Excellent for Vite + React apps
+- **Netlify**: Good support for static sites and serverless functions
+- **Cloudflare Pages**: Fast CDN and edge computing
+- **AWS Amplify**: Full-stack deployment
+- **Self-hosted**: Any Node.js hosting environment
+
+### Build Output
+The `npm run build` command creates a `dist/` directory with optimized static assets that can be served by any static file server.
+
+## Troubleshooting
+
+### Issue: Application won't start
+- Check Node.js version: `node --version` (should be v18+)
+- Clear node_modules and reinstall: `rm -rf node_modules package-lock.json && npm install`
+- Check for port conflicts (default port is 8080)
+
+### Issue: Supabase connection errors
+- Verify `.env` file has correct credentials
+- Check Supabase project is active
+- Verify network connectivity
+
+### Issue: Build errors
+- Check TypeScript errors: `npm run lint`
+- Verify all imports are correct
+- Check for missing dependencies
+
+## Additional Notes
+
+- The application uses path aliases (`@/` for `src/`) configured in `vite.config.ts` and `tsconfig.app.json`
+- TypeScript strict mode is enabled
+- ESLint is configured for code quality
+- The project follows standard React best practices
+
+## Support
+
+For issues related to:
+- **React/Vite**: Check [Vite Documentation](https://vitejs.dev/)
+- **Supabase**: Check [Supabase Documentation](https://supabase.com/docs)
+- **shadcn-ui**: Check [shadcn/ui Documentation](https://ui.shadcn.com/)
+
 ---
 
-## Post-Migration Recommendations
-
-1. **Regenerate Supabase types** — `src/integrations/supabase/types.ts` has stub types (`never`). Run `supabase gen types typescript` to sync with your schema.
-2. **Add `.env.example`** — For new developers, include a template with variable names (no real keys).
-3. **Replace social images** — Add your own `og:image` and `twitter:image` URLs in `index.html`.
-4. **Review `DEBT_AND_RISK.md`** — Contains notes on tech debt and platform lock-in; useful for future cleanup.
-
----
-
-## Notes
-
-- The app is a standard Vite + React + Supabase project; no Lovable-specific logic remains.
-- Supabase handles auth and database; ensure your project URL and anon key are correct in `.env`.
-- Port is `8080` as set in `vite.config.ts`.
+**Migration Date**: February 19, 2026
+**Migration Status**: Ready for execution
