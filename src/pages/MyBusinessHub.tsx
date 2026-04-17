@@ -7,22 +7,24 @@ import { useSession } from "@/features/auth/hooks/useSession";
 
 export default function MyBusinessHub() {
   const navigate = useNavigate();
-  const { session } = useSession();
+  const { session, loading: sessionLoading } = useSession();
 
-  const { data, isLoading } = useQuery({
+  const { data, isFetched } = useQuery({
     queryKey: ["my-business", session?.user.id],
     queryFn: () => getBusinessProfileForUser(session!.user.id),
-    enabled: !!session?.user.id,
+    enabled: !!session?.user.id && !sessionLoading,
   });
 
   useEffect(() => {
-    if (!session || isLoading) return;
+    if (sessionLoading) return;
+    if (!session) { navigate("/auth", { replace: true }); return; }
+    if (!isFetched) return;
     if (data && !data.deleted_at) {
       navigate(`/business/${data.id}/manage`, { replace: true });
     } else {
       navigate("/business/add", { replace: true });
     }
-  }, [session, data, isLoading, navigate]);
+  }, [session, sessionLoading, data, isFetched, navigate]);
 
   return (
     <div className="min-h-[50vh] flex items-center justify-center">

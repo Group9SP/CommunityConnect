@@ -20,11 +20,11 @@ export function HoursEditor({ value, onChange }: Props) {
         <div key={h.day} className="grid grid-cols-[60px_1fr] gap-2 items-center">
           <div className="flex items-center gap-2">
             <Checkbox
-              id={`closed-${h.day}`}
+              id={`open-${h.day}`}
               checked={!h.closed}
               onCheckedChange={(v) => update(i, { closed: !v })}
             />
-            <Label htmlFor={`closed-${h.day}`} className="font-medium w-8">{h.day}</Label>
+            <Label htmlFor={`open-${h.day}`} className="font-medium w-8">{h.day}</Label>
           </div>
           {h.closed ? (
             <span className="text-sm text-muted-foreground">Closed</span>

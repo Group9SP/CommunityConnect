@@ -160,6 +160,11 @@ const Browse = () => {
     setSearchParams(params, { replace: true });
   }, [filters, debouncedQuery, page, setSearchParams]);
 
+  // Scroll to top on page change
+  useEffect(() => {
+    document.getElementById("browse-top")?.scrollIntoView({ behavior: "smooth" });
+  }, [page]);
+
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
     setPage(1); // Reset to page 1 on new search
@@ -253,7 +258,7 @@ const Browse = () => {
 
   // ── Render ─────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-background">
+    <div id="browse-top" className="min-h-screen bg-background">
 
       {/* ── Header ── */}
       <header className="bg-card border-b sticky top-0 z-50 shadow-sm">
@@ -435,7 +440,7 @@ const Browse = () => {
                   variant="outline"
                   size="sm"
                   disabled={page <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  onClick={() => { setPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                   aria-label="Previous page"
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -455,7 +460,7 @@ const Browse = () => {
                   variant="outline"
                   size="sm"
                   disabled={page >= totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() => { setPage((p) => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                   aria-label="Next page"
                 >
                   Next

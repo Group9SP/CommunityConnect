@@ -77,7 +77,7 @@ async function fetchBusinesses({
         ];
     }
 
-    const variables: any = { limit: pageSize };
+    const variables: any = { limit: 100 };
     if (Object.keys(filter).length > 0) variables.filter = filter;
 
     try {
@@ -135,17 +135,14 @@ async function fetchBusinesses({
             };
         });
 
-        return { businesses, totalCount: businesses.length };
+        // Apply client-side pagination after fetching all from DB
+        const from = (page - 1) * pageSize;
+        const paginated = businesses.slice(from, from + pageSize);
+
+        return { businesses: paginated, totalCount: businesses.length };
     } catch (error) {
-        // ── Graceful fallback: Amplify query failed ──
-        const filtered = applyFilters(STATIC_BUSINESSES_WITH_IMAGES, filters, query);
-        const sorted = applySort(filtered, filters.sortBy);
-        const { page: pageItems, totalCount } = applyPagination(
-            sorted,
-            page,
-            pageSize
-        );
-        return { businesses: pageItems, totalCount };
+        // GraphQL failed — return empty rather than mixing static with DB data
+        return { businesses: [], totalCount: 0 };
     }
 }
 
