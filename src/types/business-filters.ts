@@ -1,3 +1,23 @@
+/**
+ * Fetches all approved business profiles.
+ *
+ * Business rule:
+ * Only businesses with verification_status = 'approved'
+ * should be publicly visible.
+ *
+ * Related Requirement:
+ * RQ-3: Users must only see verified businesses in Browse view.
+ */
+export async function fetchApprovedBusinesses() {
+  const { data, error } = await supabase
+    .from("business_profiles")
+    .select("*")
+    .eq("verification_status", "approved")
+
+  if (error) throw error
+  return data
+}
+
 export interface BusinessFilters {
   verified: boolean;
   howardAffiliated: boolean;
